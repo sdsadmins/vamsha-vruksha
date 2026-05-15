@@ -98,7 +98,7 @@ function TreeNode({
         </clipPath>
       </defs>
       <image
-        href={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(AVATAR_SVGS[node.id] ?? "")}`}
+        href={AVATAR_SVGS[node.id] ?? ""}
         x={node.x - 34} y={node.y - 34}
         width={68} height={68}
         clipPath={`url(#clip-node-${node.id})`}
@@ -400,10 +400,10 @@ export default function FamilyTreePage() {
                   <div className="flex flex-col items-center text-center">
                     <div className="w-20 h-20 rounded-full overflow-hidden border-2 mx-auto mb-3" style={{borderColor: "#D4AF7A"}}>
                       <img
-                        src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(AVATAR_SVGS[selected] ?? "")}`}
+                        src={AVATAR_SVGS[selected] ?? ""}
                         alt={selectedMember.name}
                         className="w-full h-full object-cover"
-                        style={selectedMember.status === "Late" ? {filter: "grayscale(40%)"} : {}}
+                        style={selectedMember.status === "Late" ? { filter: "grayscale(40%)" } : {}}
                       />
                     </div>
 

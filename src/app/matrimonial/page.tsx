@@ -6,7 +6,13 @@ import { Filter, Heart, Shield, Search } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { MATRIMONIAL_CANDIDATES } from "@/lib/data";
 
-const CARD_BG_COLORS = ["c9a96e", "1a5c32", "8b0000", "2e3f5c"];
+// Real portrait photos for matrimonial candidates
+const MATRIMONIAL_PHOTOS = [
+  "https://i.pravatar.cc/400?img=47",  // Ananya V. — young woman
+  "https://i.pravatar.cc/400?img=11",  // Rohit K. — young man
+  "https://i.pravatar.cc/400?img=41",  // Sneha P. — young woman
+  "https://i.pravatar.cc/400?img=33",  // Karthik S. — young man
+];
 
 export default function MatrimonialPage() {
   const router = useRouter();
@@ -94,7 +100,7 @@ export default function MatrimonialPage() {
             {/* Photo header */}
             <div className="relative overflow-hidden" style={{ height: "180px" }}>
               <img
-                src={`https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(c.name)}&scale=85&backgroundColor=${CARD_BG_COLORS[i % CARD_BG_COLORS.length]}`}
+                src={MATRIMONIAL_PHOTOS[i % MATRIMONIAL_PHOTOS.length]}
                 alt={c.name}
                 className="w-full h-full object-cover"
               />

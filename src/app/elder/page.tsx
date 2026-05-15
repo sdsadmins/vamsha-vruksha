@@ -121,11 +121,12 @@ export default function ElderDashboard() {
                 style={{ borderColor: "#F3F4F6" }}
               >
                 <div className="flex gap-4 mb-4">
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-lg shrink-0"
-                    style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}
-                  >
-                    {member.avatar}
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0">
+                    <img
+                      src={`https://i.pravatar.cc/100?img=${(i + 53) % 70}`}
+                      alt={member.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-base">{member.name}</h3>

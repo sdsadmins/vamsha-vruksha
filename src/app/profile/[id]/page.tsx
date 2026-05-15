@@ -75,22 +75,11 @@ export default function ProfilePage() {
                       filter: isLate ? "grayscale(30%)" : "none",
                     }}
                   >
-                    {AVATAR_SVGS[memberId ?? ""] ? (
-                      <img
-                        src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-                          AVATAR_SVGS[memberId ?? ""] ?? ""
-                        )}`}
-                        alt={member.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center text-white text-2xl font-bold"
-                        style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}
-                      >
-                        {member.avatar}
-                      </div>
-                    )}
+                    <img
+                      src={AVATAR_SVGS[memberId ?? ""] ?? ""}
+                      alt={member.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   {member.status === "Active" && (
                     <div
@@ -219,27 +208,11 @@ export default function ProfilePage() {
                       className="w-12 h-12 rounded-full overflow-hidden border-2"
                       style={{ borderColor: "#E8D5BC" }}
                     >
-                      {AVATAR_SVGS[parent.id] ? (
-                        <img
-                          src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-                            AVATAR_SVGS[parent.id] ?? ""
-                          )}`}
-                          alt={parent.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div
-                          className="w-full h-full flex items-center justify-center text-white text-sm font-bold"
-                          style={{
-                            background:
-                              parent.status === "Late"
-                                ? "#6B7280"
-                                : "linear-gradient(135deg, #1B4332, #2D6A4F)",
-                          }}
-                        >
-                          {parent.avatar}
-                        </div>
-                      )}
+                      <img
+                        src={AVATAR_SVGS[parent.id] ?? ""}
+                        alt={parent.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <p className="font-semibold">
@@ -263,24 +236,11 @@ export default function ProfilePage() {
                       className="w-12 h-12 rounded-full overflow-hidden border-2"
                       style={{ borderColor: "#E8D5BC" }}
                     >
-                      {AVATAR_SVGS[child.id] ? (
-                        <img
-                          src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-                            AVATAR_SVGS[child.id] ?? ""
-                          )}`}
-                          alt={child.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div
-                          className="w-full h-full flex items-center justify-center text-white text-sm font-bold"
-                          style={{
-                            background: "linear-gradient(135deg, #1B4332, #2D6A4F)",
-                          }}
-                        >
-                          {child.avatar}
-                        </div>
-                      )}
+                      <img
+                        src={AVATAR_SVGS[child.id] ?? ""}
+                        alt={child.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <p className="font-semibold">{child.name}</p>
