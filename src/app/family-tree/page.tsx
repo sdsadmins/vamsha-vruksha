@@ -85,33 +85,37 @@ function TreeNode({
         </circle>
       )}
 
-      {/* Photo background circle */}
+      {/* Background circle */}
       <circle cx={node.x} cy={node.y} r={36}
-        fill={isLate ? "#9CA3AF" : "white"}
+        fill="white"
         stroke={isSelected ? "#D4AF7A" : isLate ? "#D1D5DB" : "#2D6A4F"}
         strokeWidth={isSelected ? 3 : 2} />
 
-      {/* Avatar photo using clipPath */}
+      {/* Avatar photo — use foreignObject so browser loads it as a normal <img> (no CORS issue) */}
       <defs>
         <clipPath id={`clip-node-${node.id}`}>
-          <circle cx={node.x} cy={node.y} r={34} />
+          <circle cx={node.x} cy={node.y} r={33} />
         </clipPath>
       </defs>
-      <image
-        href={AVATAR_SVGS[node.id] ?? ""}
-        x={node.x - 34} y={node.y - 34}
-        width={68} height={68}
+      <foreignObject
+        x={node.x - 33} y={node.y - 33}
+        width={66} height={66}
         clipPath={`url(#clip-node-${node.id})`}
-        preserveAspectRatio="xMidYMid slice"
-      />
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={AVATAR_SVGS[node.id] ?? ""}
+          alt={node.label}
+          width={66} height={66}
+          style={{
+            objectFit: "cover",
+            display: "block",
+            filter: isLate ? "grayscale(55%)" : "none",
+          }}
+        />
+      </foreignObject>
 
-      {/* Late member grey overlay */}
-      {isLate && (
-        <circle cx={node.x} cy={node.y} r={34} fill="rgba(100,100,100,0.35)"
-          clipPath={`url(#clip-node-${node.id})`} />
-      )}
-
-      {/* Outer border ring */}
+      {/* Outer border ring drawn on top of photo */}
       <circle cx={node.x} cy={node.y} r={36} fill="none"
         stroke={isSelected ? "#D4AF7A" : isLate ? "#9CA3AF" : "#2D6A4F"}
         strokeWidth={isSelected ? 3 : 2} />
