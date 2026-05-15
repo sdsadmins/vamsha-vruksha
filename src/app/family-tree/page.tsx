@@ -20,22 +20,22 @@ const GEN_COLORS: Record<string, string[]> = {
 };
 
 const LIFE_ARCHIVES: Record<string, string> = {
-  "1": "Ramachandra Bhat was the patriarch of our Kundapura branch, the first to document the family lineage in writing in 1955. His 47-year ledger is the foundation of our digital tree.",
-  "2": "Savitri Bhat was the matriarch of the Bhat household, renowned for her scholarship in Sanskrit and her dedication to Samaj events for 50 years.",
-  "3": "Venkatesh Bhat migrated to the coastal belt to establish the community temple in 1945. His descendants now span 4 states.",
-  "4": "Rajesh Kumar Sharma has been the custodian of our family's oral history for over 40 years. He maintains the handwritten ledger started by his grandfather.",
-  "5": "Meera Kulkarni is an accomplished educator and Samaj community leader, organizing annual heritage events in Hubli since 2005.",
-  "6": "Aditi Rao represents the bridge between ancestral heritage and the digital future. She digitized over 200 family photographs.",
+  "1": "Ramachandra Shet was the patriarch of our Kundapura branch and a master goldsmith. He established the family jewellery tradition in 1942 and trained over 40 craftsmen in the Daivadnya tradition.",
+  "2": "Savitribai Shet was the matriarch of the Shet household, renowned for her devotion to Samaj seva and Sanskrit shlokas. She organised the first Samaj women's collective in Kundapura.",
+  "3": "Venkatesh Kamat migrated from Kumta to Bengaluru in 1975 to expand the jewellery business. His descendants now span Bengaluru, Mangaluru, Singapore, and Dubai.",
+  "4": "Suresh Kamat is the first in the family to enter software engineering, bridging the goldsmith legacy with Bengaluru's IT boom. He co-founded the Samaj IT professional network.",
+  "5": "Rekha Pai is a distinguished educator and Samaj community leader. She established the Daivadnya Samaj annual scholarship fund in 2008 and has mentored over 300 students.",
+  "6": "Priya Kamat represents the new generation of Daivadnya Samaj — digitising over 500 family photos, creating this Vamsha Vruksha platform, and connecting 1,400+ families online.",
 };
 
 // Node positions in the SVG viewBox (0 0 900 620)
 const NODES = [
-  { id: "1", x: 320, y: 90,  label: "Ramachandra Bhat",  sub: "Patriarch · Kashyap",      gen: 1 },
-  { id: "2", x: 560, y: 90,  label: "Savitri Bhat",      sub: "Matriarch · Kashyap",      gen: 1 },
-  { id: "3", x: 440, y: 230, label: "Venkatesh Bhat",    sub: "Grandfather · Bharadwaja", gen: 2 },
-  { id: "4", x: 250, y: 375, label: "Rajesh K. Sharma",  sub: "Father · Kashyap",         gen: 3 },
-  { id: "5", x: 650, y: 375, label: "Meera Kulkarni",    sub: "Aunt · Bharadwaja",        gen: 3 },
-  { id: "6", x: 250, y: 520, label: "Aditi Rao",         sub: "You · Kashyap",            gen: 4 },
+  { id: "1", x: 320, y: 90,  label: "Ramachandra Shet",  sub: "Patriarch · Kashyap",      gen: 1 },
+  { id: "2", x: 560, y: 90,  label: "Savitribai Shet",   sub: "Matriarch · Kashyap",      gen: 1 },
+  { id: "3", x: 440, y: 230, label: "Venkatesh Kamat",   sub: "Grandfather · Bharadwaja", gen: 2 },
+  { id: "4", x: 250, y: 375, label: "Suresh Kamat",      sub: "Father · Kashyap",         gen: 3 },
+  { id: "5", x: 650, y: 375, label: "Rekha Pai",         sub: "Aunt · Bharadwaja",        gen: 3 },
+  { id: "6", x: 250, y: 520, label: "Priya Kamat",       sub: "You · Kashyap",            gen: 4 },
 ];
 
 // Lines: [x1,y1] → [x2,y2] with staggered draw delay

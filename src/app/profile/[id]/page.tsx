@@ -8,12 +8,12 @@ import { FAMILY_MEMBERS } from "@/lib/data";
 import { AVATAR_SVGS } from "@/lib/avatarSvgs";
 
 const LIFE_ARCHIVES: Record<string, string> = {
-  "1": "Ramachandra Bhat was the patriarch of our Kundapura branch. The first to document family lineage in writing in 1955. His 47-year handwritten ledger forms the foundation of our digital tree today.",
-  "2": "Savitri Bhat was the matriarch renowned for her scholarship in Sanskrit and unparalleled devotion to Samaj welfare events for five decades.",
-  "3": "Venkatesh Bhat migrated to the coastal belt to establish the community temple in 1945. His descendants now span 4 states.",
-  "4": "Rajesh Kumar Sharma has been the custodian of our family's oral history for over 40 years. He maintains the handwritten ledger started by his grandfather.",
-  "5": "Meera Kulkarni is an accomplished educator and community leader who has organized annual Samaj heritage events in Hubli since 2005.",
-  "6": "Aditi Rao represents the bridge between our ancestral heritage and the digital future. She digitized over 200 family photographs and created this digital tree.",
+  "1": "Ramachandra Shet was the patriarch of our Kundapura branch and a master goldsmith. He established the family jewellery tradition in 1942 and his 47-year handwritten ledger is the foundation of our digital tree today.",
+  "2": "Savitribai Shet was the matriarch renowned for her devotion to Samaj seva and Sanskrit shlokas. She organised the first Samaj women's collective in Kundapura and raised funds for the community temple.",
+  "3": "Venkatesh Kamat migrated from Kumta to Bengaluru in 1975 to expand the jewellery business to Commercial Street. His descendants now span Bengaluru, Mangaluru, Singapore, and Dubai.",
+  "4": "Suresh Kamat is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom. He co-founded the Daivadnya Samaj IT professionals' network.",
+  "5": "Rekha Pai is a distinguished educator and Samaj community leader. She established the Daivadnya Samaj annual scholarship fund in 2008, mentoring over 300 students from the community.",
+  "6": "Priya Kamat represents the new generation — digitising 500+ family photos, creating this Vamsha Vruksha platform, and connecting 1,400+ families across the Daivadnya Samaj worldwide.",
 };
 
 export default function ProfilePage() {

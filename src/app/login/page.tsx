@@ -7,26 +7,30 @@ import { TreePine, User, Shield, ArrowRight, CheckCircle, Users, Heart, Star } f
 import { saveUser } from "@/lib/auth";
 import type { VVUser } from "@/lib/auth";
 
-const DEMO_PROFILES: { user: VVUser; label: string; description: string; badge: string; color: string; accent: string; icon: React.ReactNode; features: string[] }[] = [
+const DEMO_PROFILES: { user: VVUser; label: string; description: string; subDesc: string; badge: string; color: string; accent: string; icon: React.ReactNode; features: string[]; photo: string }[] = [
   {
-    user: { name: "Aditi Rao", phone: "9876543210", role: "member", gotra: "Kashyap", native: "Udupi, Karnataka", avatar: "6" },
+    user: { name: "Priya Kamat", phone: "9876543210", role: "member", gotra: "Kashyap", native: "Bengaluru, Karnataka", avatar: "6" },
     label: "Member Login",
-    description: "Aditi Rao",
+    description: "Priya Kamat",
+    subDesc: "UX Designer · Bengaluru",
     badge: "Community Member",
     color: "#1B4332",
     accent: "#D4AF7A",
-    icon: <User size={28} />,
+    icon: <User size={24} />,
+    photo: "https://randomuser.me/api/portraits/women/26.jpg",
     features: ["Family Tree", "Matrimonial Hub", "Welfare Campaigns", "Member Directory"],
   },
   {
-    user: { name: "Shri Raghavan", phone: "9999999999", role: "elder", gotra: "Bharadwaja", native: "Kundapura, Karnataka", avatar: "1" },
+    user: { name: "Shri Narayanarao Shet", phone: "9999999999", role: "elder", gotra: "Bharadwaja", native: "Kumta, Uttara Kannada", avatar: "elder" },
     label: "Elder / Admin Login",
-    description: "Shri Raghavan",
+    description: "Shri Narayanarao Shet",
+    subDesc: "Elder Committee · Kumta Branch",
     badge: "Elder & Administrator",
     color: "#6B4226",
     accent: "#D4AF7A",
-    icon: <Shield size={28} />,
-    features: ["Member Verification", "Lineage Management", "Community Oversight", "All Member Access"],
+    icon: <Shield size={24} />,
+    photo: "https://randomuser.me/api/portraits/men/64.jpg",
+    features: ["Member Verification", "Lineage Management", "Community Oversight", "Full Admin Access"],
   },
 ];
 
@@ -145,15 +149,15 @@ export default function LoginPage() {
                     <div className="flex-1 p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-4">
-                          {/* Icon circle */}
-                          <div
-                            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
-                            style={{ background: `linear-gradient(135deg, ${profile.color}, ${profile.accent})` }}
-                          >
+                          {/* Photo avatar */}
+                          <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border-2"
+                            style={{ borderColor: profile.accent }}>
                             {loading === idx ? (
-                              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              <div className="w-full h-full flex items-center justify-center" style={{ background: profile.color }}>
+                                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              </div>
                             ) : (
-                              profile.icon
+                              <img src={profile.photo} alt={profile.description} className="w-full h-full object-cover" />
                             )}
                           </div>
 
@@ -163,6 +167,7 @@ export default function LoginPage() {
                               {idx === 1 && <Star size={12} style={{ color: "#A67C52" }} fill="#A67C52" />}
                             </div>
                             <p className="text-sm font-medium" style={{ color: profile.color }}>{profile.description}</p>
+                            <p className="text-xs text-gray-400">{profile.subDesc}</p>
                             <span
                               className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold"
                               style={{

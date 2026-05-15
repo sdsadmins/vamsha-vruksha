@@ -7,6 +7,7 @@ import {
   LogOut, Bell, ChevronRight, Menu, User, Lock
 } from "lucide-react";
 import { getUser, clearUser, type VVUser } from "@/lib/auth";
+import { AVATAR_SVGS } from "@/lib/avatarSvgs";
 
 const MEMBER_NAV = [
   { icon: LayoutDashboard, label: "Dashboard",   href: "/dashboard" },
@@ -93,9 +94,12 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
 
           {/* User card */}
           <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
-              style={{ background: isElder ? "linear-gradient(135deg, #A67C52, #D4AF7A)" : "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
-              {user.avatar}
+            <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-white/20">
+              <img
+                src={AVATAR_SVGS[user.avatar] ?? ""}
+                alt={user.name}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="min-w-0">
               <p className="text-white text-sm font-semibold truncate">{user.name}</p>
@@ -184,12 +188,10 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: "#A67C52" }} />
             </button>
             {user && (
-              <Link href={`/profile/${user.avatar ?? "6"}`} className="flex items-center gap-2.5 pl-1">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                  style={{ background: isElder ? "linear-gradient(135deg, #A67C52, #D4AF7A)" : "linear-gradient(135deg, #1B4332, #2D6A4F)" }}
-                >
-                  {user.avatar}
+              <Link href={`/profile/${user.avatar === "elder" ? "3" : user.avatar}`} className="flex items-center gap-2.5 pl-1">
+                <div className="w-8 h-8 rounded-full overflow-hidden border-2"
+                  style={{ borderColor: isElder ? "#D4AF7A" : "#2D6A4F" }}>
+                  <img src={AVATAR_SVGS[user.avatar] ?? ""} alt={user.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="hidden sm:block">
                   <p className="text-xs font-semibold" style={{ color: "#1B4332" }}>{user.name}</p>
