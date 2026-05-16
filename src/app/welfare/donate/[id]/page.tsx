@@ -12,7 +12,7 @@ const PRESET_AMOUNTS = [500, 2000, 5000, 10000];
 const IMPACT_MESSAGES: Record<number, string> = {
   500:   "Your ₹500 will fund stationery and books for one Samaj scholarship student.",
   2000:  "Your ₹2,000 will provide 10 bags of eco-friendly cement for the temple restoration.",
-  5000:  "Your ₹5,000 sponsors one student's full semester through Daivadnya Vidya Nidhi.",
+  5000:  "Your ₹5,000 sponsors one student's full semester through Daivajna Vidya Nidhi.",
   10000: "Your ₹10,000 covers a full mason's week of skilled heritage restoration work.",
 };
 
@@ -63,7 +63,7 @@ export default function DonatePage() {
           </button>
           <button onClick={() => router.push("/welfare/impact")}
             className="px-6 py-3 rounded-xl font-semibold border"
-            style={{ borderColor: "#E8D5BC", color: "#1B4332" }}>
+            style={{ borderColor: "#DFC5A0", color: "#1B4332" }}>
             View Impact Report
           </button>
         </div>
@@ -85,7 +85,7 @@ export default function DonatePage() {
         {/* LEFT: Campaign info */}
         <div className="lg:col-span-2 space-y-5">
           {/* Campaign card */}
-          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "#DFC5A0" }}>
             <div className="h-40 flex items-center justify-center text-6xl"
               style={{ background: "linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
               {campaign.image}
@@ -123,7 +123,7 @@ export default function DonatePage() {
               <div>
                 <p className="font-bold text-sm mb-1" style={{ color: "#065F46" }}>Transparency Pledge</p>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  The Daivadnya Samaj Samiti guarantees that 100% of your contribution goes directly to the project. Our payment gateway flows directly to a monitored committee account, published quarterly in the <Link href="/welfare/impact" className="underline">Impact Report</Link>.
+                  The Daivajna Samaja Samiti guarantees that 100% of your contribution goes directly to the project. Our payment gateway flows directly to a monitored committee account, published quarterly in the <Link href="/welfare/impact" className="underline">Impact Report</Link>.
                 </p>
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function DonatePage() {
 
         {/* RIGHT: Donation form */}
         <div className="lg:col-span-3">
-          <div className="rounded-2xl border p-6 bg-white" style={{ borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-6 bg-white" style={{ borderColor: "#DFC5A0" }}>
             <h2 className="text-xl font-bold mb-1" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
               Make a Contribution
             </h2>
@@ -160,7 +160,7 @@ export default function DonatePage() {
                   className="py-3 rounded-xl text-sm font-bold border transition-all"
                   style={amount === a && !customAmount
                     ? { background: "linear-gradient(135deg,#1B4332,#2D6A4F)", color: "white", borderColor: "#1B4332" }
-                    : { borderColor: "#E8D5BC", color: "#374151" }
+                    : { borderColor: "#DFC5A0", color: "#374151" }
                   }>
                   ₹{a.toLocaleString("en-IN")}
                 </button>
@@ -172,7 +172,7 @@ export default function DonatePage() {
               value={customAmount}
               onChange={e => { setCustomAmount(e.target.value); setAmount(0); }}
               className="w-full px-4 py-3 text-sm border rounded-xl outline-none mb-4"
-              style={{ borderColor: "#E8D5BC" }}
+              style={{ borderColor: "#DFC5A0" }}
             />
 
             {/* Impact message */}
@@ -194,12 +194,12 @@ export default function DonatePage() {
               value={message}
               onChange={e => setMessage(e.target.value)}
               className="w-full px-4 py-3 text-sm border rounded-xl outline-none resize-none mb-4"
-              style={{ borderColor: "#E8D5BC" }}
+              style={{ borderColor: "#DFC5A0" }}
             />
 
             {/* Digital certificate */}
             <div className="flex items-center gap-3 p-4 rounded-xl mb-5 cursor-pointer"
-              style={{ background: "#F9F5F0", border: "1px solid #E8D5BC" }}
+              style={{ background: "#F7F0E8", border: "1px solid #DFC5A0" }}
               onClick={() => setWantsCert(!wantsCert)}>
               <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
                 style={wantsCert ? { background: "#1B4332" } : { border: "2px solid #D1D5DB" }}>
@@ -207,7 +207,7 @@ export default function DonatePage() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold flex items-center gap-2">
-                  <Award size={14} style={{ color: "#A67C52" }} /> Receive Digital Heritage Certificate
+                  <Award size={14} style={{ color: "#8B5E3C" }} /> Receive Digital Heritage Certificate
                 </p>
                 <p className="text-xs text-gray-400">A personalised Samaj contribution certificate, archived permanently in your profile.</p>
               </div>
@@ -225,7 +225,7 @@ export default function DonatePage() {
                   className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer border transition-all"
                   style={payMethod === pid
                     ? { borderColor: "#1B4332", background: "#F0FBF4" }
-                    : { borderColor: "#E8D5BC", background: "white" }
+                    : { borderColor: "#DFC5A0", background: "white" }
                   }
                   onClick={() => setPayMethod(pid)}>
                   <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0"
@@ -247,7 +247,7 @@ export default function DonatePage() {
               <Heart size={18} fill="white" /> Contribute ₹{finalAmount ? finalAmount.toLocaleString("en-IN") : "—"}
             </button>
             <p className="text-xs text-center text-gray-400 mt-3">
-              Secured by Daivadnya Samaj Samiti. By contributing, you agree to the{" "}
+              Secured by Daivajna Samaja Samiti. By contributing, you agree to the{" "}
               <span className="underline cursor-pointer">Community Welfare Policy</span>.
             </p>
           </div>

@@ -82,7 +82,7 @@ export default function DirectoryMap({ members, highlighted, onSelect }: Props) 
           <div style="
             width:${isHL ? 48 : 40}px;height:${isHL ? 48 : 40}px;
             border-radius:50%;overflow:hidden;
-            border:${isHL ? "3px" : "2px"} solid ${isHL ? "#D4AF7A" : "#1B4332"};
+            border:${isHL ? "3px" : "2px"} solid ${isHL ? "#C4823A" : "#1B4332"};
             box-shadow:0 ${isHL ? "4" : "2"}px ${isHL ? "16" : "8"}px rgba(0,0,0,${isHL ? "0.3" : "0.15"});
             background:#fff;
           ">
@@ -92,7 +92,7 @@ export default function DirectoryMap({ members, highlighted, onSelect }: Props) 
             position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);
             width:0;height:0;border-left:6px solid transparent;
             border-right:6px solid transparent;
-            border-top:9px solid ${isHL ? "#D4AF7A" : "#1B4332"};
+            border-top:9px solid ${isHL ? "#C4823A" : "#1B4332"};
           "></div>
         </div>
       `;

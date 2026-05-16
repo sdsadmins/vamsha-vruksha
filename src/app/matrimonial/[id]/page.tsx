@@ -35,10 +35,10 @@ export default function CandidateDetailPage() {
           <ArrowLeft size={15} /> Back to Matrimonial Hub
         </button>
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-xl border hover:bg-gray-50 transition-colors" style={{ borderColor: "#E8D5BC" }}>
+          <button className="p-2 rounded-xl border hover:bg-gray-50 transition-colors" style={{ borderColor: "#DFC5A0" }}>
             <Share2 size={16} style={{ color: "#6B7280" }} />
           </button>
-          <button className="p-2 rounded-xl border hover:bg-gray-50 transition-colors" style={{ borderColor: "#E8D5BC" }}>
+          <button className="p-2 rounded-xl border hover:bg-gray-50 transition-colors" style={{ borderColor: "#DFC5A0" }}>
             <Download size={16} style={{ color: "#6B7280" }} />
           </button>
         </div>
@@ -52,7 +52,7 @@ export default function CandidateDetailPage() {
           transition={{ duration: 0.45 }}
           className="lg:col-span-1"
         >
-          <div className="rounded-3xl overflow-hidden border sticky top-4" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-3xl overflow-hidden border sticky top-4" style={{ background: "white", borderColor: "#DFC5A0" }}>
             {/* Photo */}
             <div className="relative" style={{ height: "300px" }}>
               <img
@@ -114,7 +114,7 @@ export default function CandidateDetailPage() {
                   <Heart size={16} /> Initiate Interest via Elder
                 </button>
                 <button className="w-full py-3 rounded-xl font-semibold text-sm border flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-                  style={{ borderColor: "#E8D5BC", color: "#1B4332" }}>
+                  style={{ borderColor: "#DFC5A0", color: "#1B4332" }}>
                   <Download size={15} /> Download Biodata PDF
                 </button>
               </div>
@@ -138,7 +138,7 @@ export default function CandidateDetailPage() {
               { label: "Mangal",        value: candidate.mangal === "Yes" ? "Mangalik" : "Non-Mangalik" },
             ].map(({ label, value }) => (
               <div key={label} className="px-4 py-2 rounded-xl border text-center"
-                style={{ background: "white", borderColor: "#E8D5BC" }}>
+                style={{ background: "white", borderColor: "#DFC5A0" }}>
                 <p className="text-xs text-gray-400">{label}</p>
                 <p className="text-sm font-bold" style={{ color: "#1B4332" }}>{value}</p>
               </div>
@@ -146,7 +146,7 @@ export default function CandidateDetailPage() {
           </div>
 
           {/* About */}
-          <div className="rounded-2xl border p-6" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-6" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <h2 className="font-bold text-lg mb-3 flex items-center gap-2"
               style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
               About
@@ -156,7 +156,7 @@ export default function CandidateDetailPage() {
 
           {/* Career & Family — 2 col */}
           <div className="grid md:grid-cols-2 gap-5">
-            <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#E8D5BC" }}>
+            <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#DFC5A0" }}>
               <h2 className="font-bold mb-4 flex items-center gap-2" style={{ color: "#0D2B1E" }}>
                 <GraduationCap size={16} style={{ color: "#1B4332" }} /> Career &amp; Education
               </h2>
@@ -175,7 +175,7 @@ export default function CandidateDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#E8D5BC" }}>
+            <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#DFC5A0" }}>
               <h2 className="font-bold mb-4 flex items-center gap-2" style={{ color: "#0D2B1E" }}>
                 <Users size={16} style={{ color: "#1B4332" }} /> Family Background
               </h2>
@@ -196,9 +196,9 @@ export default function CandidateDetailPage() {
           </div>
 
           {/* Astro */}
-          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <h2 className="font-bold mb-4 flex items-center gap-2" style={{ color: "#0D2B1E" }}>
-              <Star size={16} style={{ color: "#A67C52" }} fill="#A67C52" /> Astro Details
+              <Star size={16} style={{ color: "#8B5E3C" }} fill="#8B5E3C" /> Astro Details
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {[
@@ -208,20 +208,20 @@ export default function CandidateDetailPage() {
                 { label: "Mangal",           value: candidate.mangal === "Yes" ? "Mangalik ⚠" : "Non-Mangalik ✓" },
                 { label: "Time of Birth",    value: candidate.timeOfBirth },
               ].map(({ label, value }) => (
-                <div key={label} className="rounded-xl p-3 text-center" style={{ background: "#F9F5F0" }}>
+                <div key={label} className="rounded-xl p-3 text-center" style={{ background: "#F7F0E8" }}>
                   <p className="text-xs text-gray-400 mb-1">{label}</p>
                   <p className="text-sm font-bold" style={{ color: "#1B4332" }}>{value}</p>
                 </div>
               ))}
             </div>
             <button className="mt-4 w-full py-2.5 text-sm border rounded-xl font-semibold hover:bg-gray-50 transition-colors"
-              style={{ borderColor: "#D4AF7A", color: "#A67C52" }}>
+              style={{ borderColor: "#C4823A", color: "#8B5E3C" }}>
               View Full Horoscope Chart
             </button>
           </div>
 
           {/* Partner Expectations */}
-          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <h2 className="font-bold mb-4" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
               Partner Expectations
             </h2>
@@ -242,7 +242,7 @@ export default function CandidateDetailPage() {
           <div className="rounded-2xl p-5 flex items-start gap-4"
             style={{ background: "linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)" }}>
+              style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)" }}>
               <Users size={18} className="text-white" />
             </div>
             <div>
@@ -250,7 +250,7 @@ export default function CandidateDetailPage() {
                 Elder-Mediated Introduction
               </p>
               <p className="text-green-200 text-xs leading-relaxed">
-                All Daivadnya Samaj introductions are managed by the Elder sub-committee to ensure cultural and lineage alignment. Once you express interest, the committee will review both profiles and facilitate a formal introduction.
+                All Daivajna Samaja introductions are managed by the Elder sub-committee to ensure cultural and lineage alignment. Once you express interest, the committee will review both profiles and facilitate a formal introduction.
               </p>
             </div>
           </div>

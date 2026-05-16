@@ -69,7 +69,7 @@ export default function VerificationsPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none"
-            style={{ borderColor: "#E8D5BC" }}
+            style={{ borderColor: "#DFC5A0" }}
           />
         </div>
         <div className="flex gap-2">
@@ -78,7 +78,7 @@ export default function VerificationsPage() {
               className="px-4 py-2 rounded-xl text-sm font-semibold border transition-all capitalize"
               style={riskFilter === r
                 ? { background: "#1B4332", color: "white", borderColor: "#1B4332" }
-                : { borderColor: "#E8D5BC", color: "#374151" }
+                : { borderColor: "#DFC5A0", color: "#374151" }
               }>
               {r === "All" ? "All" : RISK_COLORS[r].label}
             </button>
@@ -100,7 +100,7 @@ export default function VerificationsPage() {
             >
               <Link href={`/elder/verifications/${req.id}`}
                 className="flex gap-5 items-start p-5 rounded-2xl border hover:shadow-md transition-all group"
-                style={{ background: "white", borderColor: "#E8D5BC" }}>
+                style={{ background: "white", borderColor: "#DFC5A0" }}>
 
                 {/* Photo */}
                 <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">

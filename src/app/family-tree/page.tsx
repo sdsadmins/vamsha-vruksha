@@ -10,12 +10,12 @@ import { AVATAR_SVGS } from "@/lib/avatarSvgs";
 type Member = (typeof FAMILY_MEMBERS)[0];
 
 const LIFE_ARCHIVES: Record<string, string> = {
-  "1": "Ramachandra Shet was the patriarch of our Kundapura branch — a master goldsmith who established the family jewellery tradition in 1942. He trained over 40 craftsmen in the Daivadnya tradition, and his 47-year handwritten ledger is the foundation of this digital tree.",
+  "1": "Ramachandra Shet was the patriarch of our Kundapura branch — a master goldsmith who established the family jewellery tradition in 1942. He trained over 40 craftsmen in the Daivajna tradition, and his 47-year handwritten ledger is the foundation of this digital tree.",
   "2": "Savitribai Shet was the matriarch renowned for devotion to Samaj seva and Sanskrit shlokas. She organised the first Samaj women's collective in Kundapura and led fund drives for the community temple for over three decades.",
   "3": "Venkatesh Kamat migrated from Kumta to Bengaluru in 1975 to expand the jewellery trade to Commercial Street. He mentored 12 apprentices from the Samaj and his descendants now span Bengaluru, Mangaluru, Singapore, and Dubai.",
-  "4": "Suresh Kamat is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom. He co-founded the Daivadnya Samaj IT professionals' WhatsApp network, which now has 600+ members.",
-  "5": "Rekha Pai is a distinguished educator and community leader. She established the Daivadnya Samaj scholarship fund in 2008 and has personally mentored over 300 students from the Samaj across Karnataka.",
-  "6": "Priya Kamat represents the new generation — digitising 500+ family photos, building this Vamsha Vruksha platform, and connecting 1,400+ families worldwide. She won the Samaj Youth Icon award in 2023.",
+  "4": "Suresh Kamat is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom. He co-founded the Daivajna Samaja IT professionals' WhatsApp network, which now has 600+ members.",
+  "5": "Rekha Pai is a distinguished educator and community leader. She established the Daivajna Samaja scholarship fund in 2008 and has personally mentored over 300 students from the Samaj across Karnataka.",
+  "6": "Priya Kamat represents the new generation — digitising 500+ family photos, building this Daivajna Samaja platform, and connecting 1,400+ families worldwide. She won the Samaj Youth Icon award in 2023.",
 };
 
 // Node positions — viewBox "0 40 900 620"
@@ -59,7 +59,7 @@ function TreeNode({
     >
       {/* Animated glow ring when selected */}
       {isSelected && (
-        <circle cx={node.x} cy={node.y} r={R + 8} fill="none" stroke="#D4AF7A" strokeWidth="2" opacity="0.5">
+        <circle cx={node.x} cy={node.y} r={R + 8} fill="none" stroke="#C4823A" strokeWidth="2" opacity="0.5">
           <animate attributeName="r" values={`${R+6};${R+12};${R+6}`} dur="2s" repeatCount="indefinite" />
           <animate attributeName="opacity" values="0.5;0.15;0.5" dur="2s" repeatCount="indefinite" />
         </circle>
@@ -68,7 +68,7 @@ function TreeNode({
       {/* White backing circle */}
       <circle cx={node.x} cy={node.y} r={R}
         fill="white"
-        stroke={isSelected ? "#D4AF7A" : isLate ? "#D1D5DB" : "#2D6A4F"}
+        stroke={isSelected ? "#C4823A" : isLate ? "#D1D5DB" : "#2D6A4F"}
         strokeWidth={isSelected ? 3 : 2.5} />
 
       {/* Clipped photo */}
@@ -93,13 +93,13 @@ function TreeNode({
 
       {/* Border ring on top */}
       <circle cx={node.x} cy={node.y} r={R} fill="none"
-        stroke={isSelected ? "#D4AF7A" : isLate ? "#9CA3AF" : "#2D6A4F"}
+        stroke={isSelected ? "#C4823A" : isLate ? "#9CA3AF" : "#2D6A4F"}
         strokeWidth={isSelected ? 3 : 2.5} />
 
       {/* YOU badge */}
       {isYou && (
         <>
-          <rect x={node.x - 16} y={node.y + R - 2} width="32" height="14" rx="7" fill="#D4AF7A" />
+          <rect x={node.x - 16} y={node.y + R - 2} width="32" height="14" rx="7" fill="#C4823A" />
           <text x={node.x} y={node.y + R + 9} textAnchor="middle" fill="white" fontSize="8" fontWeight="800" fontFamily="Inter, sans-serif">YOU</text>
         </>
       )}
@@ -135,7 +135,7 @@ export default function FamilyTreePage() {
     : [];
 
   return (
-    <SidebarLayout title="Vamsha Vruksha — Family Tree">
+    <SidebarLayout title="Daivajna Samaja — Family Tree">
       <div className="flex gap-6" style={{ minHeight: "calc(100vh - 120px)" }}>
         {/* ── Tree Canvas ──────────────────────────── */}
         <div className="flex-1 flex flex-col min-w-0">
@@ -146,7 +146,7 @@ export default function FamilyTreePage() {
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input placeholder="Search family members…" className="input-premium pl-9 py-2 text-sm w-56" />
               </div>
-              <div className="flex gap-1 p-1 rounded-xl" style={{ background: "#F0E6D3", border: "1px solid #E8D5BC" }}>
+              <div className="flex gap-1 p-1 rounded-xl" style={{ background: "#F0E6D3", border: "1px solid #DFC5A0" }}>
                 {["Patriarchal", "Matriarchal"].map((v, i) => (
                   <button key={v} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                     style={i === 0
@@ -167,7 +167,7 @@ export default function FamilyTreePage() {
 
           {/* SVG Canvas */}
           <div className="flex-1 rounded-3xl overflow-hidden relative"
-            style={{ background: "linear-gradient(160deg, #FAF7F2 0%, #F0E6D3 100%)", border: "1px solid #E8D5BC", minHeight: "620px" }}>
+            style={{ background: "linear-gradient(160deg, #FAF7F2 0%, #F0E6D3 100%)", border: "1px solid #DFC5A0", minHeight: "620px" }}>
 
             {/* Generation labels (left rail) */}
             <div className="absolute left-3 top-0 bottom-0 flex flex-col pointer-events-none py-16 justify-around">
@@ -188,7 +188,7 @@ export default function FamilyTreePage() {
 
               {/* Spouse connector */}
               <line x1={300 + R} y1="110" x2={570 - R} y2="110"
-                stroke="#D4AF7A" strokeWidth="1.5" strokeDasharray="5,4"
+                stroke="#C4823A" strokeWidth="1.5" strokeDasharray="5,4"
                 opacity={drawn ? 0.65 : 0} style={{ transition: "opacity 0.4s 0.1s" }} />
               <text x="435" y="106" textAnchor="middle" fontSize="10"
                 opacity={drawn ? 0.8 : 0} style={{ transition: "opacity 0.4s 0.15s" }}>♥</text>
@@ -198,7 +198,7 @@ export default function FamilyTreePage() {
                 const length = dist(x1, y1, x2, y2);
                 return (
                   <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
-                    stroke="#A67C52" strokeWidth="2" strokeLinecap="round"
+                    stroke="#8B5E3C" strokeWidth="2" strokeLinecap="round"
                     strokeDasharray={length} strokeDashoffset={drawn ? 0 : length}
                     style={{ transition: `stroke-dashoffset 0.85s cubic-bezier(0.4,0,0.2,1) ${delay}s` }}
                     opacity="0.6" />
@@ -208,8 +208,8 @@ export default function FamilyTreePage() {
               {/* Junction dots */}
               {drawn && (
                 <>
-                  <circle cx="435" cy="265" r="5" fill="#A67C52" opacity="0.45" />
-                  <circle cx="240" cy="415" r="5" fill="#A67C52" opacity="0.45" />
+                  <circle cx="435" cy="265" r="5" fill="#8B5E3C" opacity="0.45" />
+                  <circle cx="240" cy="415" r="5" fill="#8B5E3C" opacity="0.45" />
                 </>
               )}
 
@@ -229,13 +229,13 @@ export default function FamilyTreePage() {
             {/* Legend */}
             <div className="absolute bottom-4 right-4 flex flex-wrap gap-2">
               {[
-                { color: "#A67C52", label: "Gen I–II" },
+                { color: "#8B5E3C", label: "Gen I–II" },
                 { color: "#1B4332", label: "Gen III+" },
-                { color: "#D4AF7A", label: "You" },
+                { color: "#C4823A", label: "You" },
                 { color: "#9CA3AF", label: "In Memoriam" },
               ].map(l => (
                 <div key={l.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-                  style={{ background: "rgba(255,255,255,0.92)", border: "1px solid #E8D5BC" }}>
+                  style={{ background: "rgba(255,255,255,0.92)", border: "1px solid #DFC5A0" }}>
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} />
                   {l.label}
                 </div>
@@ -266,7 +266,7 @@ export default function FamilyTreePage() {
               className="w-96 shrink-0"
             >
               <div className="rounded-3xl overflow-hidden sticky top-4"
-                style={{ background: "white", border: "1px solid #E8D5BC", boxShadow: "0 8px 48px rgba(27,67,50,0.15)" }}>
+                style={{ background: "white", border: "1px solid #DFC5A0", boxShadow: "0 8px 48px rgba(27,67,50,0.15)" }}>
 
                 {/* ─── Photo header ─── */}
                 <div className="relative" style={{ height: "220px" }}>
@@ -314,8 +314,8 @@ export default function FamilyTreePage() {
                       { icon: Star,     label: "Gotra", value: selectedMember.gotra },
                       { icon: MapPin,   label: "Native", value: selectedMember.native.split(",")[0] },
                     ].map(({ icon: Icon, label, value }) => (
-                      <div key={label} className="rounded-xl p-2.5 text-center" style={{ background: "#F9F5F0" }}>
-                        <Icon size={12} className="mx-auto mb-1" style={{ color: "#A67C52" }} />
+                      <div key={label} className="rounded-xl p-2.5 text-center" style={{ background: "#F7F0E8" }}>
+                        <Icon size={12} className="mx-auto mb-1" style={{ color: "#8B5E3C" }} />
                         <p className="text-xs text-gray-400">{label}</p>
                         <p className="text-xs font-bold mt-0.5" style={{ color: "#0D2B1E" }}>{value}</p>
                       </div>
@@ -342,7 +342,7 @@ export default function FamilyTreePage() {
                       <div className="space-y-1.5">
                         {parentMember && (
                           <div className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(parentMember.id)}>
-                            <div className="w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor: "#E8D5BC" }}>
+                            <div className="w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor: "#DFC5A0" }}>
                               <img src={AVATAR_SVGS[parentMember.id] ?? ""} alt={parentMember.name} className="w-full h-full object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -354,7 +354,7 @@ export default function FamilyTreePage() {
                         )}
                         {childrenMembers.map(child => (
                           <div key={child.id} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(child.id)}>
-                            <div className="w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor: "#E8D5BC" }}>
+                            <div className="w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor: "#DFC5A0" }}>
                               <img src={AVATAR_SVGS[child.id] ?? ""} alt={child.name} className="w-full h-full object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -370,9 +370,9 @@ export default function FamilyTreePage() {
 
                   {/* Life Archive */}
                   {LIFE_ARCHIVES[selected] && (
-                    <div className="rounded-xl p-4" style={{ background: "#FBF8F3", border: "1px solid #E8D5BC" }}>
+                    <div className="rounded-xl p-4" style={{ background: "#FBF8F3", border: "1px solid #DFC5A0" }}>
                       <div className="flex items-center gap-2 mb-2">
-                        <Star size={12} style={{ color: "#A67C52" }} fill="#A67C52" />
+                        <Star size={12} style={{ color: "#8B5E3C" }} fill="#8B5E3C" />
                         <span className="text-xs font-semibold" style={{ color: "#1B4332" }}>Life Archive</span>
                       </div>
                       <p className="text-xs text-gray-600 italic leading-relaxed">

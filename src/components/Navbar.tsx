@@ -12,7 +12,7 @@ export default function Navbar() {
               <TreePine size={18} className="text-white" />
             </div>
             <span style={{color: "#1B4332", fontFamily: "'Playfair Display', serif"}} className="text-lg font-semibold hidden sm:block">
-              Vamsha Vruksha
+              Daivajna Samaja
             </span>
           </Link>
 

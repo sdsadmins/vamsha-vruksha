@@ -16,7 +16,7 @@ const ARCHIVES = [
 ];
 
 const TAG_COLORS: Record<string, { bg: string; text: string }> = {
-  Heritage:     { bg: "#F3E8E8", text: "#A67C52" },
+  Heritage:     { bg: "#F3E8E8", text: "#8B5E3C" },
   Admin:        { bg: "#EDE9FE", text: "#5B21B6" },
   "Oral History": { bg: "#FEF3C7", text: "#D97706" },
   Lineage:      { bg: "#D1FAE5", text: "#065F46" },
@@ -32,10 +32,10 @@ export default function ArchivePage() {
           <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
             Digital Archive
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">Historical records, photos, and oral histories of Daivadnya Samaj</p>
+          <p className="text-sm text-gray-500 mt-0.5">Historical records, photos, and oral histories of Daivajna Samaja</p>
         </div>
         <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border"
-          style={{ borderColor: "#D4AF7A", color: "#A67C52" }}>
+          style={{ borderColor: "#C4823A", color: "#8B5E3C" }}>
           <Download size={15} /> Export All
         </button>
       </div>
@@ -49,7 +49,7 @@ export default function ArchivePage() {
               key={a.id}
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
               className="rounded-2xl border p-5 hover:shadow-md transition-shadow cursor-pointer"
-              style={{ background: "white", borderColor: "#E8D5BC" }}
+              style={{ background: "white", borderColor: "#DFC5A0" }}
             >
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: col.bg }}>
                 <Icon size={22} style={{ color: col.text }} />

@@ -51,7 +51,7 @@ export default function ElderDashboard() {
             transition={{ delay: i * 0.1 }}
           >
             <Link href={href} className="block rounded-2xl p-5 border hover:shadow-md transition-shadow cursor-pointer"
-              style={{ background: "white", borderColor: "#E8D5BC" }}>
+              style={{ background: "white", borderColor: "#DFC5A0" }}>
               <div className="flex justify-between items-start mb-3">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -86,7 +86,7 @@ export default function ElderDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="rounded-2xl border overflow-hidden"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             <div
               className="flex items-center justify-between p-5 border-b"
@@ -172,7 +172,7 @@ export default function ElderDashboard() {
                   <Link
                     href={`/elder/verifications/${member.id}`}
                     className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all hover:bg-gray-50 flex items-center justify-center"
-                    style={{ borderColor: "#E8D5BC", color: "#4B5563" }}
+                    style={{ borderColor: "#DFC5A0", color: "#4B5563" }}
                   >
                     🔍 Review Records
                   </Link>
@@ -187,7 +187,7 @@ export default function ElderDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             className="rounded-2xl border overflow-hidden"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             <div
               className="p-5 border-b flex items-center gap-2"
@@ -235,7 +235,7 @@ export default function ElderDashboard() {
                       </Link>
                       <button
                         className="px-3 py-1.5 text-xs rounded-lg font-semibold border hover:bg-gray-50 transition-colors"
-                        style={{ borderColor: "#E8D5BC", color: "#6B7280" }}
+                        style={{ borderColor: "#DFC5A0", color: "#6B7280" }}
                       >
                         Dismiss
                       </button>
@@ -255,7 +255,7 @@ export default function ElderDashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
             className="rounded-2xl border p-5"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             <h3
               className="font-bold mb-4"
@@ -292,7 +292,7 @@ export default function ElderDashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
             className="rounded-2xl border overflow-hidden"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             <h3
               className="font-bold p-4 border-b"

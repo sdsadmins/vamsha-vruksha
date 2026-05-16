@@ -28,7 +28,7 @@ export default function NewCampaignPage() {
     <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: "#FAF7F2" }}>
       <div className="text-center max-w-sm">
         <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: "#FEF3C7" }}>
-          <Lock size={36} style={{ color: "#A67C52" }} />
+          <Lock size={36} style={{ color: "#8B5E3C" }} />
         </div>
         <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", color: "#1B4332" }}>
           Elder Access Required
@@ -40,14 +40,14 @@ export default function NewCampaignPage() {
           <button
             onClick={() => { clearUser(); router.push("/login"); }}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-            style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)" }}
+            style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)" }}
           >
             Switch to Elder Login
           </button>
           <button
             onClick={() => router.push("/welfare")}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold border"
-            style={{ borderColor: "#E8D5BC", color: "#1B4332" }}
+            style={{ borderColor: "#DFC5A0", color: "#1B4332" }}
           >
             Back to Welfare
           </button>
@@ -140,7 +140,7 @@ export default function NewCampaignPage() {
                 <span className="text-xl">ℹ️</span>
                 <div>
                   <p className="text-sm font-semibold text-amber-800">A Note on Transparency</p>
-                  <p className="text-xs text-amber-700 mt-1">Each campaign within Vamsha Vruksha is vetted by the elder sub-committee to ensure heritage alignment and financial integrity.</p>
+                  <p className="text-xs text-amber-700 mt-1">Each campaign within Daivajna Samaja is vetted by the elder sub-committee to ensure heritage alignment and financial integrity.</p>
                 </div>
               </div>
               <button onClick={() => setStep(2)} className="w-full py-3 text-white rounded-xl font-semibold" style={{backgroundColor: "#1B4332"}}>

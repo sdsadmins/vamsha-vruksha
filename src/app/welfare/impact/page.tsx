@@ -17,8 +17,8 @@ const GUARDIAN_DONORS = [
 const ALLOCATION = [
   { label: "Temple & Heritage",  pct: 40, color: "#1B4332" },
   { label: "Education",          pct: 30, color: "#2D6A4F" },
-  { label: "Health & Welfare",   pct: 15, color: "#A67C52" },
-  { label: "Cultural Events",    pct: 15, color: "#D4AF7A" },
+  { label: "Health & Welfare",   pct: 15, color: "#8B5E3C" },
+  { label: "Cultural Events",    pct: 15, color: "#C4823A" },
 ];
 
 const UPCOMING_GOALS = [
@@ -67,8 +67,8 @@ export default function ImpactReportPage() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
-          <p className="text-xs font-semibold tracking-widest mb-1" style={{ color: "#A67C52" }}>
-            DAIVADNYA SAMAJ BANGALORE — ANNUAL TRANSPARENCY REPORT
+          <p className="text-xs font-semibold tracking-widest mb-1" style={{ color: "#8B5E3C" }}>
+            DAIVAJNA SAMAJA BANGALORE — ANNUAL TRANSPARENCY REPORT
           </p>
           <h2 className="text-3xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
             Heritage Impact 2024–25
@@ -79,7 +79,7 @@ export default function ImpactReportPage() {
         </div>
         <div className="flex gap-2">
           <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold hover:bg-gray-50"
-            style={{ borderColor: "#E8D5BC", color: "#374151" }}>
+            style={{ borderColor: "#DFC5A0", color: "#374151" }}>
             <Share2 size={14} /> Share
           </button>
           <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
@@ -94,11 +94,11 @@ export default function ImpactReportPage() {
         {[
           { icon: TrendingUp, label: "Total Funds Raised", val: "₹12,85,000", sub: "+40% from last year", color: "#1B4332" },
           { icon: Users,      label: "Souls Touched",      val: "1,240",       sub: "+31 Beneficiaries added", color: "#2D6A4F" },
-          { icon: Star,       label: "Active Initiatives", val: "12",          sub: "100% Transparency",       color: "#A67C52" },
+          { icon: Star,       label: "Active Initiatives", val: "12",          sub: "100% Transparency",       color: "#8B5E3C" },
         ].map(({ icon: Icon, label, val, sub, color }) => (
           <motion.div key={label}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl p-6 border" style={{ background: "white", borderColor: "#E8D5BC" }}>
+            className="rounded-2xl p-6 border" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
               style={{ background: color + "18" }}>
               <Icon size={20} style={{ color }} />
@@ -114,22 +114,22 @@ export default function ImpactReportPage() {
         {/* Left: Allocation + Donors */}
         <div className="lg:col-span-3 space-y-5">
           {/* Fund allocation */}
-          <div className="rounded-2xl border p-6" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-6" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <h3 className="font-bold text-lg mb-5 flex items-center gap-2"
               style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
               Fund Allocation Breakdown
             </h3>
             <DonutChart />
             <p className="text-xs text-gray-400 mt-4 italic border-t pt-4" style={{ borderColor: "#F3F4F6" }}>
-              &ldquo;Every rupee documented. Every decision transparent.&rdquo; — Daivadnya Audit Committee
+              &ldquo;Every rupee documented. Every decision transparent.&rdquo; — Daivajna Audit Committee
             </p>
           </div>
 
           {/* Guardian donors */}
-          <div className="rounded-2xl border overflow-hidden" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border overflow-hidden" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: "#F3F4F6" }}>
               <h3 className="font-bold flex items-center gap-2" style={{ color: "#0D2B1E" }}>
-                <Heart size={16} style={{ color: "#A67C52" }} fill="#A67C52" /> Guardian Donors
+                <Heart size={16} style={{ color: "#8B5E3C" }} fill="#8B5E3C" /> Guardian Donors
               </h3>
               <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#D1FAE5", color: "#065F46" }}>
                 View All
@@ -141,7 +141,7 @@ export default function ImpactReportPage() {
                   initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
                   className="flex items-center gap-4 p-4">
                   <div className="w-11 h-11 rounded-full overflow-hidden border-2 shrink-0"
-                    style={{ borderColor: "#D4AF7A" }}>
+                    style={{ borderColor: "#C4823A" }}>
                     <img src={d.photo} alt={d.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -158,7 +158,7 @@ export default function ImpactReportPage() {
         {/* Right: Story + Goals */}
         <div className="lg:col-span-2 space-y-5">
           {/* Feature story */}
-          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "#DFC5A0" }}>
             <div className="relative h-44">
               <img
                 src={`https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?auto=compress&cs=tinysrgb&w=600&h=300&fit=crop`}
@@ -192,7 +192,7 @@ export default function ImpactReportPage() {
           </div>
 
           {/* Upcoming goals */}
-          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <h3 className="font-bold mb-4" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
               Upcoming Heritage Goals
             </h3>
@@ -218,7 +218,7 @@ export default function ImpactReportPage() {
             </div>
             <Link href="/welfare"
               className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border"
-              style={{ borderColor: "#E8D5BC", color: "#1B4332" }}>
+              style={{ borderColor: "#DFC5A0", color: "#1B4332" }}>
               Support a Campaign <ArrowRight size={14} />
             </Link>
           </div>

@@ -43,7 +43,7 @@ export default function WelfarePage() {
       >
         <div
           className="absolute inset-0 opacity-20"
-          style={{ background: "radial-gradient(ellipse at 80% 50%, #D4AF7A44, transparent 60%)" }}
+          style={{ background: "radial-gradient(ellipse at 80% 50%, #C4823A44, transparent 60%)" }}
         />
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
@@ -81,7 +81,7 @@ export default function WelfarePage() {
             <Link
               href="/welfare/campaign/new"
               className="shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm"
-              style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)", color: "white" }}
+              style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)", color: "white" }}
             >
               <PlusCircle size={16} /> Start Campaign
             </Link>
@@ -108,14 +108,14 @@ export default function WelfarePage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.15 }}
                   className="rounded-2xl border overflow-hidden"
-                  style={{ background: "white", borderColor: "#E8D5BC" }}
+                  style={{ background: "white", borderColor: "#DFC5A0" }}
                 >
                   <div className="flex">
                     {/* Image side */}
                     <div
                       className="w-32 shrink-0 flex items-center justify-center text-5xl"
                       style={{
-                        background: `linear-gradient(160deg, ${i === 0 ? "#0D2B1E" : "#6B4226"}, ${i === 0 ? "#1B4332" : "#A67C52"})`,
+                        background: `linear-gradient(160deg, ${i === 0 ? "#0D2B1E" : "#6B4226"}, ${i === 0 ? "#1B4332" : "#8B5E3C"})`,
                       }}
                     >
                       {c.image}
@@ -188,7 +188,7 @@ export default function WelfarePage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
             className="rounded-2xl border p-5"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             <h3
               className="font-bold mb-1 flex items-center gap-2"
@@ -210,7 +210,7 @@ export default function WelfarePage() {
                           color: "white",
                           borderColor: "#1B4332",
                         }
-                      : { borderColor: "#E8D5BC", color: "#374151" }
+                      : { borderColor: "#DFC5A0", color: "#374151" }
                   }
                 >
                   ₹{a}
@@ -223,7 +223,7 @@ export default function WelfarePage() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="w-full px-3 py-2.5 text-sm border rounded-xl outline-none mb-3"
-              style={{ borderColor: "#E8D5BC" }}
+              style={{ borderColor: "#DFC5A0" }}
             />
             <button
               onClick={() => handleDonate("quick")}
@@ -231,7 +231,7 @@ export default function WelfarePage() {
               style={{
                 background: donated["quick"]
                   ? "#2D6A4F"
-                  : "linear-gradient(135deg, #A67C52, #D4AF7A)",
+                  : "linear-gradient(135deg, #8B5E3C, #C4823A)",
               }}
             >
               {donated["quick"] ? "✓ Thank You! 🙏" : "Support Welfare"}
@@ -244,7 +244,7 @@ export default function WelfarePage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.35 }}
             className="rounded-2xl overflow-hidden border"
-            style={{ borderColor: "#E8D5BC" }}
+            style={{ borderColor: "#DFC5A0" }}
           >
             <div className="p-5" style={{ background: "linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
               <BarChart2 size={24} className="text-green-400 mb-2" />
@@ -257,7 +257,7 @@ export default function WelfarePage() {
               <Link
                 href="/welfare/impact"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
-                style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)", color: "white" }}
+                style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)", color: "white" }}
               >
                 View Impact Report →
               </Link>
@@ -270,7 +270,7 @@ export default function WelfarePage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
             className="rounded-2xl border p-5"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             <h3
               className="font-bold mb-3"
@@ -302,7 +302,7 @@ export default function WelfarePage() {
                 <div
                   key={item.title}
                   className="flex gap-3 p-3 rounded-xl"
-                  style={{ background: "#F9F5F0" }}
+                  style={{ background: "#F7F0E8" }}
                 >
                   <span className="text-xl shrink-0">{item.emoji}</span>
                   <div>
@@ -310,7 +310,7 @@ export default function WelfarePage() {
                     <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
                     <span
                       className="text-xs font-semibold mt-1 inline-block"
-                      style={{ color: "#A67C52" }}
+                      style={{ color: "#8B5E3C" }}
                     >
                       {item.tag}
                     </span>

@@ -1,4 +1,4 @@
-// Daivadnya Samaj Bangalore — Demo data
+// Daivajna Samaja Bangalore — Demo data
 const PX = (id: number) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop`;
 
@@ -20,7 +20,7 @@ export const TEST_USERS = [
   },
 ];
 
-// Daivadnya Samaj family — goldsmith lineage from Kundapura/Kumta, now rooted in Bengaluru
+// Daivajna Samaja family — goldsmith lineage from Kundapura/Kumta, now rooted in Bengaluru
 export const FAMILY_MEMBERS = [
   {
     id: "1",
@@ -126,13 +126,13 @@ export const MATRIMONIAL_CANDIDATES = [
     gotraSurname: "Bharadwaja",
     timeOfBirth: "10:45 AM",
     partnerExpectations: [
-      "Well-educated professional from Daivadnya Samaj",
+      "Well-educated professional from Daivajna Samaja",
       "Preferably based in Bengaluru or Karnataka",
       "Family values and respect for Samaj traditions",
       "Age preference: 28–32 years",
     ],
     about:
-      "Raised in a traditional Daivadnya Samaj family in Basavanagudi, Bengaluru. I love Carnatic music, cooking authentic Malvani cuisine, and participating in Samaj cultural events every year. Looking for a life partner who values both heritage and growth.",
+      "Raised in a traditional Daivajna Samaja family in Basavanagudi, Bengaluru. I love Carnatic music, cooking authentic Malvani cuisine, and participating in Samaj cultural events every year. Looking for a life partner who values both heritage and growth.",
     verified: true,
     matrimonialFee: true,
     avatar: "AK",
@@ -161,7 +161,7 @@ export const MATRIMONIAL_CANDIDATES = [
     gotraSurname: "Kashyap",
     timeOfBirth: "08:20 AM",
     partnerExpectations: [
-      "Working professional from Daivadnya Samaj",
+      "Working professional from Daivajna Samaja",
       "Family-oriented and respects Samaj culture",
       "Comfortable with joint family in Bengaluru",
     ],
@@ -200,7 +200,7 @@ export const MATRIMONIAL_CANDIDATES = [
       "Professionally qualified (CA / MBA / Engineer)",
     ],
     about:
-      "A first-generation CA from a proud Daivadnya Samaj family from Mangaluru. Passionate about finance, Tulu folk arts, and cooking traditional Kundapur cuisine. Weekends are for temple visits and Samaj bhajans. I believe a strong marriage rests on shared cultural roots.",
+      "A first-generation CA from a proud Daivajna Samaja family from Mangaluru. Passionate about finance, Tulu folk arts, and cooking traditional Kundapur cuisine. Weekends are for temple visits and Samaj bhajans. I believe a strong marriage rests on shared cultural roots.",
     verified: true,
     matrimonialFee: true,
     avatar: "SN",
@@ -234,7 +234,7 @@ export const MATRIMONIAL_CANDIDATES = [
       "Values Sanskrit, classical music, and Samaj traditions",
     ],
     about:
-      "Raised in Jayanagar, Bengaluru — a true product of the Daivadnya Samaj diaspora. Product manager by day, Carnatic vocalist and Samaj committee volunteer by weekend. Deeply proud of my goldsmith heritage while thriving in the startup world. Looking for a life partner who loves both heritage and adventure.",
+      "Raised in Jayanagar, Bengaluru — a true product of the Daivajna Samaja diaspora. Product manager by day, Carnatic vocalist and Samaj committee volunteer by weekend. Deeply proud of my goldsmith heritage while thriving in the startup world. Looking for a life partner who loves both heritage and adventure.",
     verified: true,
     matrimonialFee: false,
     avatar: "KP",
@@ -248,7 +248,7 @@ export const WELFARE_CAMPAIGNS = [
     title: "Samaj Bhavan Renovation",
     category: "Infrastructure",
     description:
-      "Renovation and expansion of the Daivadnya Samaj Bhavan in Basavanagudi, Bengaluru — adding a 500-seat auditorium, digital library, and modern kitchen for community feasts.",
+      "Renovation and expansion of the Daivajna Samaja Bhavan in Basavanagudi, Bengaluru — adding a 500-seat auditorium, digital library, and modern kitchen for community feasts.",
     goal: 5000000,
     raised: 4250000,
     daysLeft: 12,
@@ -271,7 +271,7 @@ export const WELFARE_CAMPAIGNS = [
   },
   {
     id: "student-scholarship",
-    title: "Daivadnya Vidya Nidhi — Scholarships",
+    title: "Daivajna Vidya Nidhi — Scholarships",
     category: "Education",
     description:
       "Merit-cum-need scholarships for Samaj students pursuing engineering, medicine, and law. 30 scholarships of ₹50,000 each for the academic year 2025–26.",
@@ -339,7 +339,7 @@ export const ELDER_QUEUE = [
   },
 ];
 
-// ── Community Members directory — 24 verified Daivadnya Samaj members ──────────
+// ── Community Members directory — 24 verified Daivajna Samaja members ──────────
 export const COMMUNITY_MEMBERS = [
   // Kundapura Branch
   { id: "m1",  name: "Gopalakrishna Shet",  age: 68, gender: "M", branch: "Kundapura",  gotra: "Kashyap",     occupation: "Retired Master Goldsmith",           location: "Kundapura, Udupi",         status: "Active",   verified: true,  joinedYear: 2019, photo: PX(4053536)  },
@@ -664,7 +664,7 @@ export const VERIFICATION_REQUESTS = [
   },
 ];
 
-// ── Invitation Route Planner families — Bengaluru Daivadnya Samaj ─────────────
+// ── Invitation Route Planner families — Bengaluru Daivajna Samaja ─────────────
 export const INVITATION_FAMILIES = [
   {
     id: "if1",

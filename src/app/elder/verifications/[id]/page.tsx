@@ -59,7 +59,7 @@ export default function VerificationDetailPage() {
           initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}
           className="lg:col-span-1"
         >
-          <div className="rounded-3xl border overflow-hidden sticky top-4" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-3xl border overflow-hidden sticky top-4" style={{ background: "white", borderColor: "#DFC5A0" }}>
             {/* Photo */}
             <div className="relative" style={{ height: "260px" }}>
               <img src={req.photo} alt={req.name} className="w-full h-full object-cover object-top" />
@@ -127,7 +127,7 @@ export default function VerificationDetailPage() {
                 <button
                   onClick={() => setAction("info")}
                   className="w-full py-2.5 rounded-xl text-sm font-semibold border hover:bg-gray-50 flex items-center justify-center gap-2"
-                  style={{ borderColor: "#D4AF7A", color: "#A67C52" }}
+                  style={{ borderColor: "#C4823A", color: "#8B5E3C" }}
                 >
                   <MessageSquare size={15} /> Request More Info
                 </button>
@@ -149,7 +149,7 @@ export default function VerificationDetailPage() {
           className="lg:col-span-2 space-y-5"
         >
           {/* Lineage claim */}
-          <div className="rounded-2xl border p-6" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-6" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <h2 className="font-bold text-lg mb-4 flex items-center gap-2" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
               <Shield size={18} style={{ color: "#1B4332" }} /> Lineage Claim
             </h2>
@@ -169,13 +169,13 @@ export default function VerificationDetailPage() {
           </div>
 
           {/* Documents */}
-          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <h2 className="font-bold mb-4 flex items-center gap-2" style={{ color: "#0D2B1E" }}>
               <FileText size={16} style={{ color: "#1B4332" }} /> Submitted Documents
             </h2>
             <div className="space-y-2">
               {req.documents.map((doc, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "#F9F5F0" }}>
+                <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "#F7F0E8" }}>
                   <CheckCircle size={14} style={{ color: "#1B4332" }} />
                   <span className="text-sm font-medium">{doc}</span>
                   <span className="ml-auto text-xs px-2 py-0.5 rounded-full" style={{ background: "#D1FAE5", color: "#065F46" }}>Received</span>
@@ -185,7 +185,7 @@ export default function VerificationDetailPage() {
           </div>
 
           {/* Elder Vouches */}
-          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border p-5" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <h2 className="font-bold mb-4 flex items-center gap-2" style={{ color: "#0D2B1E" }}>
               <CheckCircle size={16} style={{ color: "#1B4332" }} /> Elder Vouches ({req.vouches}/{req.vouchesRequired} confirmed)
             </h2>
@@ -220,7 +220,7 @@ export default function VerificationDetailPage() {
           <div className="rounded-2xl border p-5"
             style={{
               background: req.riskLevel === "high" ? "#FFF5F5" : "white",
-              borderColor: req.riskLevel === "high" ? "#FCA5A5" : "#E8D5BC"
+              borderColor: req.riskLevel === "high" ? "#FCA5A5" : "#DFC5A0"
             }}>
             <h2 className="font-bold mb-3 flex items-center gap-2"
               style={{ color: req.riskLevel === "high" ? "#DC2626" : "#0D2B1E" }}>
@@ -288,7 +288,7 @@ export default function VerificationDetailPage() {
                 </button>
                 <button onClick={() => setAction(null)}
                   className="px-4 py-3 rounded-xl font-semibold border"
-                  style={{ borderColor: "#E8D5BC", color: "#1B4332" }}>
+                  style={{ borderColor: "#DFC5A0", color: "#1B4332" }}>
                   Close
                 </button>
               </div>

@@ -8,8 +8,8 @@
   --forest-800: #1B4332;
   --forest-700: #2D6A4F;
   --forest-600: #40916C;
-  --gold-700: #A67C52;
-  --gold-500: #D4AF7A;
+  --gold-700: #8B5E3C;
+  --gold-500: #C4823A;
   --cream: #FAF7F2;
   --cream-dark: #F0E6D3;
 }
@@ -45,7 +45,7 @@ body {
 
 /* Gold shimmer text */
 .gold-shimmer {
-  background: linear-gradient(90deg, #A67C52, #D4AF7A, #A67C52);
+  background: linear-gradient(90deg, #8B5E3C, #C4823A, #8B5E3C);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -85,7 +85,7 @@ body {
 /* Premium input */
 .input-premium {
   background: white;
-  border: 1.5px solid #E8D5BC;
+  border: 1.5px solid #DFC5A0;
   border-radius: 10px;
   padding: 12px 16px;
   font-size: 14px;
@@ -117,7 +117,7 @@ body {
 }
 
 .btn-gold {
-  background: linear-gradient(135deg, #A67C52, #D4AF7A);
+  background: linear-gradient(135deg, #8B5E3C, #C4823A);
   color: white;
   border: none;
   border-radius: 10px;

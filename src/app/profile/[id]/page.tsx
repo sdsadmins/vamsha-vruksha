@@ -11,9 +11,9 @@ const LIFE_ARCHIVES: Record<string, string> = {
   "1": "Ramachandra Shet was the patriarch of our Kundapura branch and a master goldsmith. He established the family jewellery tradition in 1942 and his 47-year handwritten ledger is the foundation of our digital tree today.",
   "2": "Savitribai Shet was the matriarch renowned for her devotion to Samaj seva and Sanskrit shlokas. She organised the first Samaj women's collective in Kundapura and raised funds for the community temple.",
   "3": "Venkatesh Kamat migrated from Kumta to Bengaluru in 1975 to expand the jewellery business to Commercial Street. His descendants now span Bengaluru, Mangaluru, Singapore, and Dubai.",
-  "4": "Suresh Kamat is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom. He co-founded the Daivadnya Samaj IT professionals' network.",
-  "5": "Rekha Pai is a distinguished educator and Samaj community leader. She established the Daivadnya Samaj annual scholarship fund in 2008, mentoring over 300 students from the community.",
-  "6": "Priya Kamat represents the new generation — digitising 500+ family photos, creating this Vamsha Vruksha platform, and connecting 1,400+ families across the Daivadnya Samaj worldwide.",
+  "4": "Suresh Kamat is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom. He co-founded the Daivajna Samaja IT professionals' network.",
+  "5": "Rekha Pai is a distinguished educator and Samaj community leader. She established the Daivajna Samaja annual scholarship fund in 2008, mentoring over 300 students from the community.",
+  "6": "Priya Kamat represents the new generation — digitising 500+ family photos, creating this Daivajna Samaja platform, and connecting 1,400+ families across the Daivajna Samaja worldwide.",
 };
 
 export default function ProfilePage() {
@@ -49,7 +49,7 @@ export default function ProfilePage() {
         >
           <div
             className="rounded-3xl overflow-hidden border sticky top-4"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             {/* Header photo */}
             <div
@@ -63,7 +63,7 @@ export default function ProfilePage() {
                 className="absolute inset-0 opacity-20"
                 style={{
                   background:
-                    "radial-gradient(ellipse at 50% 0%, #D4AF7A33, transparent 70%)",
+                    "radial-gradient(ellipse at 50% 0%, #C4823A33, transparent 70%)",
                 }}
               />
               <div className="relative flex flex-col items-center text-center">
@@ -71,7 +71,7 @@ export default function ProfilePage() {
                   <div
                     className="w-28 h-28 rounded-full overflow-hidden border-4 mx-auto"
                     style={{
-                      borderColor: "#D4AF7A",
+                      borderColor: "#C4823A",
                       filter: isLate ? "grayscale(30%)" : "none",
                     }}
                   >
@@ -154,7 +154,7 @@ export default function ProfilePage() {
               <Link
                 href="/profile/verify"
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border mb-4 transition-all hover:bg-amber-50"
-                style={{ borderColor: "#D4AF7A", color: "#A67C52" }}
+                style={{ borderColor: "#C4823A", color: "#8B5E3C" }}
               >
                 🛡️ Verify &amp; Update Info
               </Link>
@@ -162,9 +162,9 @@ export default function ProfilePage() {
               {/* Location */}
               <div
                 className="rounded-xl p-4 flex items-center gap-3 border"
-                style={{ background: "#FAF7F2", borderColor: "#E8D5BC" }}
+                style={{ background: "#FAF7F2", borderColor: "#DFC5A0" }}
               >
-                <MapPin size={16} style={{ color: "#A67C52" }} />
+                <MapPin size={16} style={{ color: "#8B5E3C" }} />
                 <div>
                   <p className="text-xs text-gray-400">Home Location</p>
                   <p className="font-semibold text-sm">{member.native}</p>
@@ -184,7 +184,7 @@ export default function ProfilePage() {
           {/* Family Relations */}
           <div
             className="rounded-2xl border overflow-hidden"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             <div
               className="flex items-center justify-between p-5 border-b"
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-4">
                     <div
                       className="w-12 h-12 rounded-full overflow-hidden border-2"
-                      style={{ borderColor: "#E8D5BC" }}
+                      style={{ borderColor: "#DFC5A0" }}
                     >
                       <img
                         src={AVATAR_SVGS[parent.id] ?? ""}
@@ -241,7 +241,7 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-4">
                     <div
                       className="w-12 h-12 rounded-full overflow-hidden border-2"
-                      style={{ borderColor: "#E8D5BC" }}
+                      style={{ borderColor: "#DFC5A0" }}
                     >
                       <img
                         src={AVATAR_SVGS[child.id] ?? ""}
@@ -275,17 +275,17 @@ export default function ProfilePage() {
           {LIFE_ARCHIVES[memberId ?? ""] && (
             <div
               className="rounded-2xl border p-6"
-              style={{ background: "white", borderColor: "#E8D5BC" }}
+              style={{ background: "white", borderColor: "#DFC5A0" }}
             >
               <h2
                 className="font-bold text-lg mb-4 flex items-center gap-2"
                 style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}
               >
-                <Star size={18} style={{ color: "#A67C52" }} fill="#A67C52" /> Life Archive
+                <Star size={18} style={{ color: "#8B5E3C" }} fill="#8B5E3C" /> Life Archive
               </h2>
               <blockquote
                 className="text-gray-600 italic leading-relaxed border-l-4 pl-4 text-base"
-                style={{ borderColor: "#A67C52", fontFamily: "'Playfair Display', serif" }}
+                style={{ borderColor: "#8B5E3C", fontFamily: "'Playfair Display', serif" }}
               >
                 &ldquo;{LIFE_ARCHIVES[memberId ?? ""]}&rdquo;
               </blockquote>
@@ -296,8 +296,8 @@ export default function ProfilePage() {
           <div
             className="rounded-2xl border p-5"
             style={{
-              background: "linear-gradient(160deg, #F9F5F0, #FAF7F2)",
-              borderColor: "#E8D5BC",
+              background: "linear-gradient(160deg, #F7F0E8, #FAF7F2)",
+              borderColor: "#DFC5A0",
             }}
           >
             <h2 className="font-bold mb-3" style={{ color: "#0D2B1E" }}>
@@ -312,7 +312,7 @@ export default function ProfilePage() {
                       background:
                         i === arr.length - 1
                           ? "linear-gradient(135deg, #1B4332, #2D6A4F)"
-                          : "#E8D5BC",
+                          : "#DFC5A0",
                       color: i === arr.length - 1 ? "white" : "#6B5C4A",
                     }}
                   >

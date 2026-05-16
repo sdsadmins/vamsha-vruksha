@@ -92,7 +92,7 @@ export default function VerifyPage() {
           </button>
           <button onClick={() => router.push("/dashboard")}
             className="px-6 py-3 rounded-xl font-semibold border"
-            style={{ borderColor: "#E8D5BC", color: "#1B4332" }}>
+            style={{ borderColor: "#DFC5A0", color: "#1B4332" }}>
             Go to Dashboard
           </button>
         </div>
@@ -125,7 +125,7 @@ export default function VerifyPage() {
         <AnimatePresence mode="wait">
           {step === "overview" && (
             <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="rounded-2xl border divide-y mb-5" style={{ background: "white", borderColor: "#E8D5BC" }}>
+              <div className="rounded-2xl border divide-y mb-5" style={{ background: "white", borderColor: "#DFC5A0" }}>
                 {FIELDS.map(f => {
                   const Icon = f.icon;
                   const locked = f.id === "gotra";
@@ -147,7 +147,7 @@ export default function VerifyPage() {
                         disabled={locked}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                         style={locked
-                          ? { borderColor: "#E8D5BC", color: "#9CA3AF" }
+                          ? { borderColor: "#DFC5A0", color: "#9CA3AF" }
                           : { borderColor: "#1B4332", color: "#1B4332" }
                         }>
                         {locked ? <><Shield size={11} /> Locked</> : <><Edit3 size={11} /> Update</>}
@@ -168,7 +168,7 @@ export default function VerifyPage() {
                 <button
                   onClick={() => router.push("/dashboard")}
                   className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm border transition-all hover:bg-gray-50"
-                  style={{ borderColor: "#E8D5BC", color: "#374151" }}>
+                  style={{ borderColor: "#DFC5A0", color: "#374151" }}>
                   <Clock size={16} /> Remind Me in 30 Days
                 </button>
               </div>
@@ -177,7 +177,7 @@ export default function VerifyPage() {
 
           {step === "otp" && editField && (
             <motion.div key="otp" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="rounded-2xl border p-6 text-center" style={{ background: "white", borderColor: "#E8D5BC" }}>
+              <div className="rounded-2xl border p-6 text-center" style={{ background: "white", borderColor: "#DFC5A0" }}>
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                   style={{ background: "#F0FBF4" }}>
                   <Phone size={26} style={{ color: "#1B4332" }} />
@@ -207,7 +207,7 @@ export default function VerifyPage() {
                       value={otpValue}
                       onChange={e => { setOtpValue(e.target.value.replace(/\D/g, "")); setOtpError(false); }}
                       className="w-full text-center text-2xl tracking-[0.5em] px-4 py-3 border rounded-xl outline-none font-bold"
-                      style={{ borderColor: otpError ? "#EF4444" : "#E8D5BC", color: "#0D2B1E" }}
+                      style={{ borderColor: otpError ? "#EF4444" : "#DFC5A0", color: "#0D2B1E" }}
                     />
                     {otpError && (
                       <p className="text-xs text-red-500 flex items-center justify-center gap-1">
@@ -259,7 +259,7 @@ function EditForm({
   const Icon = field.icon;
 
   return (
-    <div className="rounded-2xl border p-6" style={{ background: "white", borderColor: "#E8D5BC" }}>
+    <div className="rounded-2xl border p-6" style={{ background: "white", borderColor: "#DFC5A0" }}>
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center"
           style={{ background: "#F0FBF4" }}>
@@ -273,7 +273,7 @@ function EditForm({
 
       <p className="text-xs font-semibold text-gray-500 mb-1.5">CURRENT VALUE</p>
       <div className="px-4 py-3 rounded-xl mb-4 text-sm line-through text-gray-400"
-        style={{ background: "#F9F5F0" }}>
+        style={{ background: "#F7F0E8" }}>
         {currentValue}
       </div>
 
@@ -305,7 +305,7 @@ function EditForm({
         </button>
         <button onClick={onCancel}
           className="px-5 py-3.5 rounded-xl font-semibold text-sm border"
-          style={{ borderColor: "#E8D5BC", color: "#374151" }}>
+          style={{ borderColor: "#DFC5A0", color: "#374151" }}>
           Cancel
         </button>
       </div>

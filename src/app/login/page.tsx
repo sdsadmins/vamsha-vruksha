@@ -15,7 +15,7 @@ const DEMO_PROFILES: { user: VVUser; label: string; description: string; subDesc
     subDesc: "UX Designer · Bengaluru",
     badge: "Community Member",
     color: "#1B4332",
-    accent: "#D4AF7A",
+    accent: "#C4823A",
     icon: <User size={24} />,
     photo: "https://images.pexels.com/photos/7485047/pexels-photo-7485047.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop",
     features: ["Family Tree", "Matrimonial Hub", "Welfare Campaigns", "Member Directory"],
@@ -27,7 +27,7 @@ const DEMO_PROFILES: { user: VVUser; label: string; description: string; subDesc
     subDesc: "Elder Committee · Kumta Branch",
     badge: "Elder & Administrator",
     color: "#6B4226",
-    accent: "#D4AF7A",
+    accent: "#C4823A",
     icon: <Shield size={24} />,
     photo: "https://images.pexels.com/photos/17815020/pexels-photo-17815020.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop",
     features: ["Member Verification", "Lineage Management", "Community Oversight", "Full Admin Access"],
@@ -56,13 +56,13 @@ export default function LoginPage() {
       >
         <div className="absolute inset-0 opacity-10">
           <svg viewBox="0 0 400 600" className="w-full h-full">
-            <line x1="200" y1="100" x2="120" y2="220" stroke="#D4AF7A" strokeWidth="1.5" strokeDasharray="200" className="tree-line" />
-            <line x1="200" y1="100" x2="280" y2="220" stroke="#D4AF7A" strokeWidth="1.5" strokeDasharray="200" className="tree-line delay-200" />
+            <line x1="200" y1="100" x2="120" y2="220" stroke="#C4823A" strokeWidth="1.5" strokeDasharray="200" className="tree-line" />
+            <line x1="200" y1="100" x2="280" y2="220" stroke="#C4823A" strokeWidth="1.5" strokeDasharray="200" className="tree-line delay-200" />
             <line x1="120" y1="220" x2="80" y2="340" stroke="#52B788" strokeWidth="1" strokeDasharray="200" className="tree-line delay-400" />
             <line x1="120" y1="220" x2="160" y2="340" stroke="#52B788" strokeWidth="1" strokeDasharray="200" className="tree-line delay-500" />
             <line x1="280" y1="220" x2="240" y2="340" stroke="#52B788" strokeWidth="1" strokeDasharray="200" className="tree-line delay-600" />
             <line x1="280" y1="220" x2="320" y2="340" stroke="#52B788" strokeWidth="1" strokeDasharray="200" className="tree-line delay-700" />
-            {[{ cx: 200, cy: 100, r: 20, fill: "#A67C52" }, { cx: 120, cy: 220, r: 16, fill: "#1B4332" }, { cx: 280, cy: 220, r: 16, fill: "#1B4332" }, { cx: 80, cy: 340, r: 12, fill: "#2D6A4F" }, { cx: 160, cy: 340, r: 12, fill: "#2D6A4F" }, { cx: 240, cy: 340, r: 12, fill: "#2D6A4F" }, { cx: 320, cy: 340, r: 12, fill: "#2D6A4F" }].map((n, i) => (
+            {[{ cx: 200, cy: 100, r: 20, fill: "#8B5E3C" }, { cx: 120, cy: 220, r: 16, fill: "#1B4332" }, { cx: 280, cy: 220, r: 16, fill: "#1B4332" }, { cx: 80, cy: 340, r: 12, fill: "#2D6A4F" }, { cx: 160, cy: 340, r: 12, fill: "#2D6A4F" }, { cx: 240, cy: 340, r: 12, fill: "#2D6A4F" }, { cx: 320, cy: 340, r: 12, fill: "#2D6A4F" }].map((n, i) => (
               <circle key={i} cx={n.cx} cy={n.cy} r={n.r} fill={n.fill} className={`tree-node delay-${(i + 1) * 200}`} />
             ))}
           </svg>
@@ -70,12 +70,12 @@ export default function LoginPage() {
 
         <div>
           <Link href="/" className="flex items-center gap-3 mb-12">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)" }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)" }}>
               <TreePine size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>Vamsha Vruksha</p>
-              <p className="text-green-400 text-xs">Daivadnya Samaj Bangalore</p>
+              <p className="text-white font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>Daivajna Samaja</p>
+              <p className="text-green-400 text-xs">Daivajna Samaja Bangalore</p>
             </div>
           </Link>
           <h2 className="text-4xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif", lineHeight: 1.2 }}>
@@ -96,14 +96,14 @@ export default function LoginPage() {
           ].map(({ icon: Icon, text }) => (
             <div key={text} className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(212,175,122,0.15)" }}>
-                <Icon size={16} style={{ color: "#D4AF7A" }} />
+                <Icon size={16} style={{ color: "#C4823A" }} />
               </div>
               <p className="text-green-300 text-sm">{text}</p>
             </div>
           ))}
         </div>
 
-        <p className="text-green-600 text-xs">© 2024 Vamsha Vruksha. Preserving Legacies for Generations.</p>
+        <p className="text-green-600 text-xs">© 2024 Daivajna Samaja. Preserving Legacies for Generations.</p>
       </div>
 
       {/* RIGHT: One-click Login */}
@@ -113,7 +113,7 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
               <TreePine size={16} className="text-white" />
             </div>
-            <span className="font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#1B4332" }}>Vamsha Vruksha</span>
+            <span className="font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#1B4332" }}>Daivajna Samaja</span>
           </Link>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -164,7 +164,7 @@ export default function LoginPage() {
                           <div>
                             <div className="flex items-center gap-2 mb-0.5">
                               <span className="font-bold text-base" style={{ color: "#0D2B1E" }}>{profile.label}</span>
-                              {idx === 1 && <Star size={12} style={{ color: "#A67C52" }} fill="#A67C52" />}
+                              {idx === 1 && <Star size={12} style={{ color: "#8B5E3C" }} fill="#8B5E3C" />}
                             </div>
                             <p className="text-sm font-medium" style={{ color: profile.color }}>{profile.description}</p>
                             <p className="text-xs text-gray-400">{profile.subDesc}</p>

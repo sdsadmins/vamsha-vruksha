@@ -30,7 +30,7 @@ function StatCard({
       className="rounded-2xl p-6 relative overflow-hidden"
       style={{
         background: "white",
-        border: "1px solid #E8D5BC",
+        border: "1px solid #DFC5A0",
         boxShadow: "0 2px 16px rgba(27,67,50,0.06)",
       }}
     >
@@ -65,8 +65,8 @@ function StatCard({
 const STAT_DATA = [
   { icon: Users,    value: "1,428", label: "Total Members",          sub: "+12 joined this week",        color: "#1B4332" },
   { icon: TreePine, value: "86",    label: "Active Trees",           sub: "Global connections mapped",   color: "#2D6A4F" },
-  { icon: Shield,   value: "24",    label: "Pending Verifications",  sub: "Awaiting elder approval",     color: "#A67C52" },
-  { icon: Calendar, value: "3",     label: "Upcoming Events",        sub: "Next: Annual Samaja Function",color: "#D4AF7A" },
+  { icon: Shield,   value: "24",    label: "Pending Verifications",  sub: "Awaiting elder approval",     color: "#8B5E3C" },
+  { icon: Calendar, value: "3",     label: "Upcoming Events",        sub: "Next: Annual Samaja Function",color: "#C4823A" },
 ];
 
 const QUICK_ACTIONS = [
@@ -112,7 +112,7 @@ export default function DashboardPage() {
             className="absolute inset-0 opacity-30"
             style={{
               background:
-                "radial-gradient(ellipse at 80% 50%, #D4AF7A22, transparent 60%)",
+                "radial-gradient(ellipse at 80% 50%, #C4823A22, transparent 60%)",
             }}
           />
           <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                     className="text-xs px-3 py-1 rounded-full font-medium"
                     style={{
                       backgroundColor: "rgba(212,175,122,0.2)",
-                      color: "#D4AF7A",
+                      color: "#C4823A",
                     }}
                   >
                     ✦ Gotra: {user.gotra}
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                 href="/family-tree"
                 className="px-5 py-3 rounded-xl font-semibold text-sm flex items-center gap-2"
                 style={{
-                  background: "linear-gradient(135deg, #A67C52, #D4AF7A)",
+                  background: "linear-gradient(135deg, #8B5E3C, #C4823A)",
                   color: "white",
                   boxShadow: "0 4px 16px rgba(166,124,82,0.4)",
                 }}
@@ -212,7 +212,7 @@ export default function DashboardPage() {
                   key={href}
                   href={href}
                   className="group flex items-center gap-4 p-5 rounded-2xl border transition-all hover:-translate-y-1 hover:shadow-lg"
-                  style={{ background: "white", border: "1px solid #E8D5BC" }}
+                  style={{ background: "white", border: "1px solid #DFC5A0" }}
                 >
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110"
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                   <div
                     key={c.id}
                     className="flex items-center gap-4 p-4 rounded-2xl border"
-                    style={{ background: "white", border: "1px solid #E8D5BC" }}
+                    style={{ background: "white", border: "1px solid #DFC5A0" }}
                   >
                     <span className="text-3xl">{c.image}</span>
                     <div className="flex-1 min-w-0">
@@ -337,7 +337,7 @@ export default function DashboardPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6 + i * 0.1 }}
                 className="flex items-start gap-3 p-4 rounded-2xl border"
-                style={{ background: "white", border: "1px solid #E8D5BC" }}
+                style={{ background: "white", border: "1px solid #DFC5A0" }}
               >
                 <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-200">
                   <img src={item.photo} alt={item.user} className="w-full h-full object-cover" />
@@ -379,9 +379,9 @@ export default function DashboardPage() {
             <Link
               href={`/matrimonial/${MATRIMONIAL_CANDIDATES[0].id}`}
               className="flex items-center gap-3 p-4 rounded-2xl border hover:shadow-md transition-all"
-              style={{ background: "white", border: "1px solid #E8D5BC" }}
+              style={{ background: "white", border: "1px solid #DFC5A0" }}
             >
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2" style={{ borderColor: "#D4AF7A" }}>
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2" style={{ borderColor: "#C4823A" }}>
                 <img src={MATRIMONIAL_CANDIDATES[0].photo} alt={MATRIMONIAL_CANDIDATES[0].name} className="w-full h-full object-cover" />
               </div>
               <div>

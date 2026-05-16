@@ -5,10 +5,10 @@ import { Calendar, MapPin, Clock, PlusCircle, Users } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 
 const EVENTS = [
-  { id: "e1", title: "Annual Samaja Utsava 2025", date: "15 August 2025", time: "9:00 AM", venue: "Daivadnya Samaj Bhavan, Basavanagudi, Bengaluru", type: "Cultural", attendees: 420, status: "Upcoming" },
+  { id: "e1", title: "Annual Samaja Utsava 2025", date: "15 August 2025", time: "9:00 AM", venue: "Daivajna Samaja Bhavan, Basavanagudi, Bengaluru", type: "Cultural", attendees: 420, status: "Upcoming" },
   { id: "e2", title: "Elder Sub-Committee Meeting — Q2", date: "28 June 2025", time: "5:00 PM", venue: "Committee Room, Samaj Bhavan", type: "Admin", attendees: 12, status: "Upcoming" },
   { id: "e3", title: "Vidya Nidhi Scholarship Ceremony", date: "10 July 2025", time: "10:30 AM", venue: "SDM College Auditorium, Mangaluru", type: "Education", attendees: 180, status: "Upcoming" },
-  { id: "e4", title: "Daivadnya Youth Convention 2025", date: "22 July 2025", time: "11:00 AM", venue: "VR Mall Convention, Bengaluru", type: "Youth", attendees: 250, status: "Planning" },
+  { id: "e4", title: "Daivajna Youth Convention 2025", date: "22 July 2025", time: "11:00 AM", venue: "VR Mall Convention, Bengaluru", type: "Youth", attendees: 250, status: "Planning" },
   { id: "e5", title: "Samaj Bhavan Renovation — Bhumi Puja", date: "1 June 2025", time: "8:00 AM", venue: "Samaj Bhavan, Basavanagudi", type: "Heritage", attendees: 80, status: "Completed" },
 ];
 
@@ -17,7 +17,7 @@ const TYPE_COLORS: Record<string, { bg: string; text: string }> = {
   Admin:     { bg: "#EDE9FE", text: "#5B21B6" },
   Education: { bg: "#DBEAFE", text: "#1E40AF" },
   Youth:     { bg: "#FEF3C7", text: "#D97706" },
-  Heritage:  { bg: "#F3E8E8", text: "#A67C52" },
+  Heritage:  { bg: "#F3E8E8", text: "#8B5E3C" },
 };
 
 export default function EventsPage() {
@@ -28,7 +28,7 @@ export default function EventsPage() {
           <h2 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
             Community Events
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">Manage Daivadnya Samaj events across all branches</p>
+          <p className="text-sm text-gray-500 mt-0.5">Manage Daivajna Samaja events across all branches</p>
         </div>
         <button className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white"
           style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
@@ -44,7 +44,7 @@ export default function EventsPage() {
               key={e.id}
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
               className="rounded-2xl border p-5 flex gap-5 items-start"
-              style={{ background: "white", borderColor: "#E8D5BC" }}
+              style={{ background: "white", borderColor: "#DFC5A0" }}
             >
               <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: col.bg }}>
@@ -71,7 +71,7 @@ export default function EventsPage() {
                 </div>
               </div>
               <button className="shrink-0 text-xs px-3 py-1.5 rounded-lg border font-semibold hover:bg-gray-50"
-                style={{ borderColor: "#E8D5BC", color: "#1B4332" }}>
+                style={{ borderColor: "#DFC5A0", color: "#1B4332" }}>
                 Manage →
               </button>
             </motion.div>

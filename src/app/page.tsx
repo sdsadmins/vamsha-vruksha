@@ -113,7 +113,7 @@ function StatCard({ stat, visible, delay }: { stat: StatDef; visible: boolean; d
     >
       <p
         className="text-3xl lg:text-4xl font-bold mb-1"
-        style={{ fontFamily: "'Playfair Display', serif", color: "#D4AF7A" }}
+        style={{ fontFamily: "'Playfair Display', serif", color: "#C4823A" }}
       >
         {stat.prefix ?? ""}
         {display}
@@ -127,7 +127,7 @@ function StatCard({ stat, visible, delay }: { stat: StatDef; visible: boolean; d
 const PILLARS = [
   {
     icon: TreePine,
-    title: "Vamsha Vruksha",
+    title: "Daivajna Samaja",
     desc: "Document your family lineage across generations. Interactive tree visualization with photo archives, life stories, and ancestral connections dating back centuries.",
     href: "/family-tree",
   },
@@ -192,7 +192,7 @@ export default function LandingPage() {
         style={{
           backgroundColor: "rgba(250,247,242,0.95)",
           backdropFilter: "blur(12px)",
-          borderColor: "#E8D5BC",
+          borderColor: "#DFC5A0",
         }}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -207,7 +207,7 @@ export default function LandingPage() {
               className="text-lg font-bold"
               style={{ fontFamily: "'Playfair Display', serif", color: "#1B4332" }}
             >
-              Vamsha Vruksha
+              Daivajna Samaja
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
@@ -254,7 +254,7 @@ export default function LandingPage() {
         className="relative overflow-hidden"
         style={{
           minHeight: "88vh",
-          background: "linear-gradient(160deg, #FAF7F2 0%, #F0E6D3 40%, #E8D5BC 100%)",
+          background: "linear-gradient(160deg, #FAF7F2 0%, #F0E6D3 40%, #DFC5A0 100%)",
         }}
       >
         <Particles />
@@ -265,7 +265,7 @@ export default function LandingPage() {
         />
         <div
           className="absolute bottom-20 left-20 w-64 h-64 rounded-full animate-float delay-300"
-          style={{ background: "radial-gradient(circle, #A67C52, transparent)", opacity: 0.08 }}
+          style={{ background: "radial-gradient(circle, #8B5E3C, transparent)", opacity: 0.08 }}
         />
 
         <div className="relative max-w-7xl mx-auto px-6 py-24 lg:py-32">
@@ -284,7 +284,7 @@ export default function LandingPage() {
                   className="w-1.5 h-1.5 rounded-full animate-pulse"
                   style={{ backgroundColor: "#1B4332" }}
                 />
-                Daivadnya Samaj Bangalore — Est. 2024
+                Daivajna Samaja Bangalore — Est. 2024
               </div>
               <h1
                 className="text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6"
@@ -299,7 +299,7 @@ export default function LandingPage() {
                 our Future
               </h1>
               <p className="text-gray-600 text-lg leading-relaxed mb-8 max-w-lg">
-                The official digital sanctuary for the Daivagnya Samaj — connecting generations, preserving heritage,
+                The official digital sanctuary for the Daivajna Samaja — connecting generations, preserving heritage,
                 and building community welfare through a living family tree.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -357,12 +357,12 @@ export default function LandingPage() {
                     {/* Lines */}
                     <line
                       x1="140" y1="40" x2="80" y2="100"
-                      stroke="#D4AF7A" strokeWidth="1.5" strokeDasharray="100"
+                      stroke="#C4823A" strokeWidth="1.5" strokeDasharray="100"
                       className="tree-line"
                     />
                     <line
                       x1="140" y1="40" x2="200" y2="100"
-                      stroke="#D4AF7A" strokeWidth="1.5" strokeDasharray="100"
+                      stroke="#C4823A" strokeWidth="1.5" strokeDasharray="100"
                       className="tree-line delay-200"
                     />
                     <line
@@ -386,7 +386,7 @@ export default function LandingPage() {
                       className="tree-line delay-700"
                     />
                     {/* Root node */}
-                    <circle cx="140" cy="40" r="22" fill="#A67C52" className="tree-node" />
+                    <circle cx="140" cy="40" r="22" fill="#8B5E3C" className="tree-node" />
                     <text x="140" y="44" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">
                       RCB
                     </text>
@@ -415,19 +415,19 @@ export default function LandingPage() {
                         cy="165"
                         r="15"
                         fill="#0D2B1E"
-                        stroke="#D4AF7A"
+                        stroke="#C4823A"
                         strokeWidth="1.5"
                         className={`tree-node delay-${600 + i * 200}`}
                       />
                     ))}
-                    <text x="50" y="169" textAnchor="middle" fill="#D4AF7A" fontSize="7">RKS</text>
-                    <text x="115" y="169" textAnchor="middle" fill="#D4AF7A" fontSize="7">MKS</text>
-                    <text x="175" y="169" textAnchor="middle" fill="#D4AF7A" fontSize="7">AJH</text>
-                    <text x="230" y="169" textAnchor="middle" fill="#D4AF7A" fontSize="7">SBH</text>
+                    <text x="50" y="169" textAnchor="middle" fill="#C4823A" fontSize="7">RKS</text>
+                    <text x="115" y="169" textAnchor="middle" fill="#C4823A" fontSize="7">MKS</text>
+                    <text x="175" y="169" textAnchor="middle" fill="#C4823A" fontSize="7">AJH</text>
+                    <text x="230" y="169" textAnchor="middle" fill="#C4823A" fontSize="7">SBH</text>
                   </svg>
                   <div className="flex justify-center gap-4 mt-6">
                     {[
-                      { label: "4 Generations", color: "#D4AF7A" },
+                      { label: "4 Generations", color: "#C4823A" },
                       { label: "6 Members", color: "#52B788" },
                       { label: "Udupi Branch", color: "#95D5B2" },
                     ].map((b) => (
@@ -453,7 +453,7 @@ export default function LandingPage() {
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)" }}
+                    style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)" }}
                   >
                     <Star size={18} className="text-white" fill="white" />
                   </div>
@@ -490,7 +490,7 @@ export default function LandingPage() {
         <div className="text-center mb-16">
           <p
             className="text-sm font-semibold mb-3"
-            style={{ color: "#A67C52", letterSpacing: "0.1em" }}
+            style={{ color: "#8B5E3C", letterSpacing: "0.1em" }}
           >
             THE PILLARS OF OUR SAMAJ
           </p>
@@ -512,7 +512,7 @@ export default function LandingPage() {
               className="group relative rounded-2xl p-6 overflow-hidden transition-all duration-300 hover:-translate-y-2 cursor-pointer"
               style={{
                 background: "white",
-                border: "1px solid #E8D5BC",
+                border: "1px solid #DFC5A0",
                 animationDelay: `${i * 0.1}s`,
                 boxShadow: "0 2px 8px rgba(27,67,50,0.06)",
               }}
@@ -537,7 +537,7 @@ export default function LandingPage() {
                 <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
                 <div
                   className="flex items-center gap-1 mt-4 font-semibold text-sm transition-colors"
-                  style={{ color: "#A67C52" }}
+                  style={{ color: "#8B5E3C" }}
                 >
                   Explore{" "}
                   <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
@@ -549,13 +549,13 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Trust Section ─── */}
-      <section className="py-20" style={{ background: "linear-gradient(180deg, #F0E6D3, #E8D5BC)" }}>
+      <section className="py-20" style={{ background: "linear-gradient(180deg, #F0E6D3, #DFC5A0)" }}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <p
                 className="text-sm font-semibold mb-3"
-                style={{ color: "#A67C52", letterSpacing: "0.1em" }}
+                style={{ color: "#8B5E3C", letterSpacing: "0.1em" }}
               >
                 A CIRCLE OF ABSOLUTE TRUST
               </p>
@@ -597,7 +597,7 @@ export default function LandingPage() {
               <p className="text-6xl mb-6">🌳</p>
               <blockquote
                 className="text-xl font-medium leading-relaxed mb-4"
-                style={{ fontFamily: "'Playfair Display', serif", color: "#D4AF7A" }}
+                style={{ fontFamily: "'Playfair Display', serif", color: "#C4823A" }}
               >
                 "A tree is only as strong as its roots. Verification ensures the legacy you build is authentic and
                 lasting."
@@ -639,7 +639,7 @@ export default function LandingPage() {
             <Link href="/" className="flex items-center gap-3">
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, #D4AF7A, #A67C52)" }}
+                style={{ background: "linear-gradient(135deg, #C4823A, #8B5E3C)" }}
               >
                 <TreePine size={18} className="text-white" />
               </div>
@@ -648,9 +648,9 @@ export default function LandingPage() {
                   className="text-white font-bold"
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
-                  Vamsha Vruksha
+                  Daivajna Samaja
                 </p>
-                <p className="text-green-400 text-xs">Daivagnya Community Samaj Portal</p>
+                <p className="text-green-400 text-xs">Daivajna Samaja Community Portal</p>
               </div>
             </Link>
             <div className="flex gap-6 flex-wrap justify-center">
@@ -668,7 +668,7 @@ export default function LandingPage() {
             </div>
           </div>
           <p className="text-center text-green-600 text-xs">
-            © 2024 Vamsha Vruksha — Daivagnya Community Samaj Portal. Preserving Legacies for Generations.
+            © 2024 Daivajna Samaja — Daivajna Samaja Community Portal. Preserving Legacies for Generations.
           </p>
         </div>
       </footer>

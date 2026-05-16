@@ -93,7 +93,7 @@ export default function DirectoryPage() {
             Community Directory
           </h2>
           <p className="text-sm text-gray-500 mt-0.5">
-            {filtered.length} of 1,428 families · Daivadnya Samaj Global Network
+            {filtered.length} of 1,428 families · Daivajna Samaja Global Network
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -102,10 +102,10 @@ export default function DirectoryPage() {
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search name, occupation…"
               className="pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none w-52"
-              style={{ borderColor: "#E8D5BC" }} />
+              style={{ borderColor: "#DFC5A0" }} />
           </div>
           <select value={gotra} onChange={e => setGotra(e.target.value)}
-            className="px-3 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor: "#E8D5BC" }}>
+            className="px-3 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor: "#DFC5A0" }}>
             {GOTRAS.map(g => <option key={g}>{g}</option>)}
           </select>
         </div>
@@ -118,7 +118,7 @@ export default function DirectoryPage() {
             className="px-4 py-1.5 rounded-full text-sm font-semibold border transition-all"
             style={branch === b
               ? { background: "#1B4332", color: "white", borderColor: "#1B4332" }
-              : { borderColor: "#E8D5BC", color: "#374151" }
+              : { borderColor: "#DFC5A0", color: "#374151" }
             }>
             {b}
           </button>
@@ -137,7 +137,7 @@ export default function DirectoryPage() {
               className="rounded-2xl border p-4 cursor-pointer transition-all hover:shadow-sm"
               style={{
                 background: "white",
-                borderColor: selected === m.id ? "#1B4332" : "#E8D5BC",
+                borderColor: selected === m.id ? "#1B4332" : "#DFC5A0",
                 boxShadow: selected === m.id ? "0 0 0 2px rgba(27,67,50,0.15)" : undefined,
               }}
               onClick={() => setSelected(selected === m.id ? null : m.id)}
@@ -175,7 +175,7 @@ export default function DirectoryPage() {
                         <Navigation size={11} /> Plan Visit
                       </Link>
                       <span className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border"
-                        style={{ borderColor: "#E8D5BC", color: "#374151" }}>
+                        style={{ borderColor: "#DFC5A0", color: "#374151" }}>
                         <Users size={11} /> View Profile
                       </span>
                     </div>
@@ -194,7 +194,7 @@ export default function DirectoryPage() {
         </div>
 
         {/* ── RIGHT: Map ── */}
-        <div className="lg:col-span-3 rounded-2xl overflow-hidden" style={{ border: "1px solid #E8D5BC", minHeight: "500px" }}>
+        <div className="lg:col-span-3 rounded-2xl overflow-hidden" style={{ border: "1px solid #DFC5A0", minHeight: "500px" }}>
           <DirectoryMap
             members={mapMembers}
             highlighted={selected}

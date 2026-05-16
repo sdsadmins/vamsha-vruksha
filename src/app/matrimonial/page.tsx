@@ -55,7 +55,7 @@ export default function MatrimonialPage() {
         style={{ background: "linear-gradient(135deg, #0D2B1E, #1B4332)" }}
       >
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)" }}>
+          style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)" }}>
           <Shield size={20} className="text-white" />
         </div>
         <div className="flex-1">
@@ -63,7 +63,7 @@ export default function MatrimonialPage() {
             Elder-Mediated Introductions
           </p>
           <p className="text-green-200 text-sm leading-relaxed">
-            All introductions in the Daivadnya Samaj network are facilitated by the Elder sub-committee — ensuring
+            All introductions in the Daivajna Samaja network are facilitated by the Elder sub-committee — ensuring
             lineage authenticity, gotra compatibility, and family alignment. Every profile is Aadhaar-verified.
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function MatrimonialPage() {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="pl-9 pr-4 py-2.5 text-sm rounded-xl border w-full outline-none"
-            style={{ borderColor: "#E8D5BC", background: "white" }}
+            style={{ borderColor: "#DFC5A0", background: "white" }}
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -96,7 +96,7 @@ export default function MatrimonialPage() {
               style={
                 activeFilter === f
                   ? { background: "linear-gradient(135deg, #1B4332, #2D6A4F)", color: "white", borderColor: "#1B4332" }
-                  : { borderColor: "#E8D5BC", color: "#6B7280", background: "white" }
+                  : { borderColor: "#DFC5A0", color: "#6B7280", background: "white" }
               }
             >
               {f}
@@ -122,7 +122,7 @@ export default function MatrimonialPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08, duration: 0.45 }}
               className="group rounded-2xl overflow-hidden border cursor-pointer"
-              style={{ background: "white", borderColor: "#E8D5BC" }}
+              style={{ background: "white", borderColor: "#DFC5A0" }}
               whileHover={{ y: -6, boxShadow: "0 16px 40px rgba(0,0,0,0.10)" }}
               onClick={() => router.push(`/matrimonial/${c.id}`)}
             >

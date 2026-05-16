@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vamsha Vruksha — Daivadnya Samaj Bangalore",
-  description: "Preserving our Roots, Nurturing our Future. The official digital sanctuary for the Daivagnya Samaj community.",
+  title: "Daivajna Samaja — Community Portal",
+  description: "Preserving our Roots, Nurturing our Future. The official digital sanctuary for the Daivajna Samaja community.",
 };
 
 export default function RootLayout({

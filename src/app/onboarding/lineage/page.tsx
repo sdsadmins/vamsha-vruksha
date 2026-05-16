@@ -32,7 +32,7 @@ export default function LineagePage() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <h1 className="text-3xl font-bold mb-2" style={{fontFamily: "'Playfair Display', serif"}}>Find Your Roots</h1>
-            <p className="text-gray-500 mb-6 text-sm">Search for your identity to find the existing community lineage. Search for your parents or an existing family branch to establish your place in the Vamsha Vruksha.</p>
+            <p className="text-gray-500 mb-6 text-sm">Search for your identity to find the existing community lineage. Search for your parents or an existing family branch to establish your place in the Daivajna Samaja.</p>
 
             <div className="mb-4">
               <input

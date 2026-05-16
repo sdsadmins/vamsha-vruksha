@@ -9,8 +9,8 @@ export default function Footer() {
           <div className="flex items-center gap-2">
             <TreePine size={20} className="text-green-300" />
             <div>
-              <p style={{fontFamily: "'Playfair Display', serif"}} className="text-white font-semibold">Vamsha Vruksha</p>
-              <p className="text-green-300 text-xs">Daivagnya Community Samaj Portal. All rights reserved.</p>
+              <p style={{fontFamily: "'Playfair Display', serif"}} className="text-white font-semibold">Daivajna Samaja</p>
+              <p className="text-green-300 text-xs">Daivajna Samaja Community Portal. All rights reserved.</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 justify-center">

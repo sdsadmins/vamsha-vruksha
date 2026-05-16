@@ -46,7 +46,7 @@ export default function ConflictDetailPage() {
           </button>
           <button onClick={() => router.push("/elder")}
             className="px-6 py-3 rounded-xl font-semibold border"
-            style={{ borderColor: "#E8D5BC", color: "#1B4332" }}>
+            style={{ borderColor: "#DFC5A0", color: "#1B4332" }}>
             Elder Dashboard
           </button>
         </div>
@@ -65,10 +65,10 @@ export default function ConflictDetailPage() {
       </div>
 
       {/* Subject header */}
-      <div className="rounded-2xl border overflow-hidden mb-6" style={{ borderColor: "#E8D5BC" }}>
+      <div className="rounded-2xl border overflow-hidden mb-6" style={{ borderColor: "#DFC5A0" }}>
         <div className="flex items-center gap-5 p-5 bg-white">
           <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 shrink-0"
-            style={{ borderColor: "#D4AF7A" }}>
+            style={{ borderColor: "#C4823A" }}>
             <img src={conflict.photo} alt={conflict.subject} className="w-full h-full object-cover" />
           </div>
           <div className="flex-1">
@@ -90,7 +90,7 @@ export default function ConflictDetailPage() {
             <span className="text-sm text-gray-400">Opened 4 days ago</span>
           </div>
         </div>
-        <div className="px-5 py-3 border-t" style={{ background: "#FFF7ED", borderColor: "#E8D5BC" }}>
+        <div className="px-5 py-3 border-t" style={{ background: "#FFF7ED", borderColor: "#DFC5A0" }}>
           <p className="text-sm text-amber-800">{conflict.conflictDesc}</p>
         </div>
       </div>
@@ -108,7 +108,7 @@ export default function ConflictDetailPage() {
         <div className="lg:col-span-1 flex lg:flex-col items-center justify-center gap-3 py-4">
           <div className="w-px h-full lg:h-px lg:w-full bg-gray-200 hidden lg:block" />
           <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 bg-white z-10 shrink-0"
-            style={{ borderColor: "#E8D5BC" }}>
+            style={{ borderColor: "#DFC5A0" }}>
             <span className="text-xs font-bold text-gray-400">VS</span>
           </div>
           <div className="w-px h-full lg:h-px lg:w-full bg-gray-200 hidden lg:block" />
@@ -124,10 +124,10 @@ export default function ConflictDetailPage() {
       </div>
 
       {/* Discussion */}
-      <div className="rounded-2xl border p-5 mb-6" style={{ background: "white", borderColor: "#E8D5BC" }}>
+      <div className="rounded-2xl border p-5 mb-6" style={{ background: "white", borderColor: "#DFC5A0" }}>
         <h3 className="font-bold mb-4 flex items-center gap-2"
           style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
-          <MessageSquare size={16} style={{ color: "#A67C52" }} /> Elder Discussion Thread
+          <MessageSquare size={16} style={{ color: "#8B5E3C" }} /> Elder Discussion Thread
         </h3>
 
         <div className="space-y-4 mb-5">
@@ -136,7 +136,7 @@ export default function ConflictDetailPage() {
               transition={{ delay: i * 0.1 }}
               className="flex gap-3">
               <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border-2"
-                style={{ borderColor: "#D4AF7A" }}>
+                style={{ borderColor: "#C4823A" }}>
                 <img src={d.photo} alt={d.author} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1">
@@ -147,7 +147,7 @@ export default function ConflictDetailPage() {
                   <span className="text-xs text-gray-400 ml-auto">{d.time}</span>
                 </div>
                 <div className="rounded-xl px-4 py-3 text-sm text-gray-700"
-                  style={{ background: "#F9F5F0", border: "1px solid #E8D5BC" }}>
+                  style={{ background: "#F7F0E8", border: "1px solid #DFC5A0" }}>
                   {d.text}
                 </div>
               </div>
@@ -163,7 +163,7 @@ export default function ConflictDetailPage() {
             value={note}
             onChange={e => setNote(e.target.value)}
             className="flex-1 px-4 py-3 text-sm border rounded-xl outline-none resize-none"
-            style={{ borderColor: "#E8D5BC" }}
+            style={{ borderColor: "#DFC5A0" }}
           />
           <button
             disabled={!note.trim()}
@@ -180,15 +180,15 @@ export default function ConflictDetailPage() {
         <div className="flex gap-3 flex-wrap">
           <button onClick={() => setResolved("merge")}
             className="flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold transition-all hover:bg-gray-50"
-            style={{ borderColor: "#E8D5BC", color: "#374151" }}>
+            style={{ borderColor: "#DFC5A0", color: "#374151" }}>
             <GitMerge size={15} /> Merge Records into New Version
           </button>
           <button
             onClick={() => setMoreEvidence(!moreEvidence)}
             className="flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold transition-all"
             style={moreEvidence
-              ? { borderColor: "#A67C52", background: "#FFF7ED", color: "#92400E" }
-              : { borderColor: "#E8D5BC", color: "#374151" }}>
+              ? { borderColor: "#8B5E3C", background: "#FFF7ED", color: "#92400E" }
+              : { borderColor: "#DFC5A0", color: "#374151" }}>
             <FileText size={15} /> {moreEvidence ? "Evidence Request Sent ✓" : "Request More Evidence"}
           </button>
         </div>
@@ -220,7 +220,7 @@ function VersionCard({
 }) {
   return (
     <div className="lg:col-span-2 rounded-2xl border overflow-hidden"
-      style={{ background: "white", borderColor: version.backed ? "#1B4332" : "#E8D5BC" }}>
+      style={{ background: "white", borderColor: version.backed ? "#1B4332" : "#DFC5A0" }}>
       {version.backed && (
         <div className="px-4 py-2 flex items-center gap-2 text-xs font-bold"
           style={{ background: "#D1FAE5", color: "#065F46" }}>
@@ -258,7 +258,7 @@ function VersionCard({
           <div className="space-y-1.5">
             {version.evidence.map((e: string, i: number) => (
               <div key={i} className="flex items-start gap-2 text-xs text-gray-600 px-3 py-2 rounded-lg"
-                style={{ background: "#F9F5F0" }}>
+                style={{ background: "#F7F0E8" }}>
                 <FileText size={11} className="mt-0.5 shrink-0 text-amber-600" />
                 {e}
               </div>
@@ -268,7 +268,7 @@ function VersionCard({
 
         {/* Submitted by */}
         <div className="flex items-center gap-3 p-3 rounded-xl mb-4"
-          style={{ background: "#F9F5F0", border: "1px solid #E8D5BC" }}>
+          style={{ background: "#F7F0E8", border: "1px solid #DFC5A0" }}>
           <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
             <img src={version.submittedPhoto} alt={version.submittedBy} className="w-full h-full object-cover" />
           </div>
@@ -283,7 +283,7 @@ function VersionCard({
           className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
           style={version.backed
             ? { background: "linear-gradient(135deg, #1B4332, #2D6A4F)", color: "white", boxShadow: "0 4px 16px rgba(27,67,50,0.25)" }
-            : { border: "2px solid #E8D5BC", color: "#374151" }
+            : { border: "2px solid #DFC5A0", color: "#374151" }
           }>
           <CheckCircle size={15} /> Accept Version {letter}
         </button>

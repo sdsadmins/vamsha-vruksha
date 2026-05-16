@@ -67,12 +67,12 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
       <div className="px-6 pt-8 pb-6 border-b border-white/10">
         <Link href={isElder ? "/elder" : "/dashboard"} className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #D4AF7A, #A67C52)" }}>
+            style={{ background: "linear-gradient(135deg, #C4823A, #8B5E3C)" }}>
             <TreePine size={18} className="text-white" />
           </div>
           <div>
-            <p className="text-white font-bold text-sm" style={{ fontFamily: "'Playfair Display', serif" }}>Vamsha Vruksha</p>
-            <p className="text-green-400 text-xs">Daivadnya Samaj</p>
+            <p className="text-white font-bold text-sm" style={{ fontFamily: "'Playfair Display', serif" }}>Daivajna Samaja</p>
+            <p className="text-green-400 text-xs">Bangalore · Heritage Portal</p>
           </div>
         </Link>
       </div>
@@ -85,7 +85,7 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
             <span
               className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
               style={isElder
-                ? { background: "rgba(166,124,82,0.25)", color: "#D4AF7A" }
+                ? { background: "rgba(166,124,82,0.25)", color: "#C4823A" }
                 : { background: "rgba(82,183,136,0.18)", color: "#52B788" }
               }
             >
@@ -122,14 +122,14 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative"
               style={active
-                ? { background: "rgba(212,175,122,0.18)", color: "#D4AF7A" }
+                ? { background: "rgba(212,175,122,0.18)", color: "#C4823A" }
                 : { color: "rgba(255,255,255,0.65)" }
               }
             >
-              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full" style={{ backgroundColor: "#D4AF7A" }} />}
+              {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full" style={{ backgroundColor: "#C4823A" }} />}
               <Icon size={18} />
               <span className="text-sm font-medium">{label}</span>
-              {active && <ChevronRight size={14} className="ml-auto" style={{ color: "#D4AF7A" }} />}
+              {active && <ChevronRight size={14} className="ml-auto" style={{ color: "#C4823A" }} />}
             </Link>
           );
         })}
@@ -174,7 +174,7 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
         {/* Top bar */}
         <header
           className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 border-b"
-          style={{ backgroundColor: "rgba(250,247,242,0.92)", backdropFilter: "blur(12px)", borderColor: "#E8D5BC" }}
+          style={{ backgroundColor: "rgba(250,247,242,0.92)", backdropFilter: "blur(12px)", borderColor: "#DFC5A0" }}
         >
           <div className="flex items-center gap-4">
             <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-gray-100">
@@ -187,17 +187,17 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
           <div className="flex items-center gap-3">
             <button className="relative p-2 rounded-xl hover:bg-green-50 transition-colors">
               <Bell size={20} style={{ color: "#2D6A4F" }} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: "#A67C52" }} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: "#8B5E3C" }} />
             </button>
             {user && (
               <Link href={`/profile/${user.avatar === "elder" ? "3" : user.avatar}`} className="flex items-center gap-2.5 pl-1">
                 <div className="w-8 h-8 rounded-full overflow-hidden border-2"
-                  style={{ borderColor: isElder ? "#D4AF7A" : "#2D6A4F" }}>
+                  style={{ borderColor: isElder ? "#C4823A" : "#2D6A4F" }}>
                   <img src={AVATAR_SVGS[user.avatar] ?? ""} alt={user.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="hidden sm:block">
                   <p className="text-xs font-semibold" style={{ color: "#1B4332" }}>{user.name}</p>
-                  <p className="text-xs" style={{ color: isElder ? "#A67C52" : "#40916C" }}>
+                  <p className="text-xs" style={{ color: isElder ? "#8B5E3C" : "#40916C" }}>
                     {isElder ? "Elder · Admin" : "Member"}
                   </p>
                 </div>
@@ -211,7 +211,7 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
           {unauthorized ? (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6">
               <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: "#FEF3C7" }}>
-                <Lock size={36} style={{ color: "#A67C52" }} />
+                <Lock size={36} style={{ color: "#8B5E3C" }} />
               </div>
               <div>
                 <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", color: "#1B4332" }}>
@@ -225,14 +225,14 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
                 <button
                   onClick={() => { clearUser(); router.push("/login"); }}
                   className="px-6 py-3 rounded-xl font-semibold text-white"
-                  style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)" }}
+                  style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)" }}
                 >
                   Switch to Elder Login
                 </button>
                 <Link
                   href="/dashboard"
                   className="px-6 py-3 rounded-xl font-semibold border"
-                  style={{ borderColor: "#E8D5BC", color: "#1B4332" }}
+                  style={{ borderColor: "#DFC5A0", color: "#1B4332" }}
                 >
                   Back to Dashboard
                 </Link>

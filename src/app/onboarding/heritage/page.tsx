@@ -83,7 +83,7 @@ export default function HeritagePage() {
           <div className="hidden lg:block">
             <div className="rounded-2xl p-5 text-white" style={{backgroundColor: "#1B4332"}}>
               <p className="text-xs text-green-300 mb-1 font-medium">Welcome to the Samaj</p>
-              <p className="text-sm leading-relaxed">By completing this step, you become a verified member in our living digital tree. You help maintain the cultural integrity and social fabric of the Daivagnya community.</p>
+              <p className="text-sm leading-relaxed">By completing this step, you become a verified member in our living digital tree. You help maintain the cultural integrity and social fabric of the Daivajna community.</p>
               <div className="mt-4 space-y-2 text-sm">
                 {["Access to the Global Lineage Directory", "Participation in Samaja Governance", "Community Welfare Program Eligibility"].map(item => (
                   <div key={item} className="flex items-center gap-2 text-green-200">

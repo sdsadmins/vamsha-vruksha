@@ -35,18 +35,18 @@ export default function RegisterPage() {
         style={{background:"linear-gradient(160deg, #061410 0%, #0D2B1E 50%, #1B4332 100%)"}}>
         <div>
           <Link href="/" className="flex items-center gap-3 mb-12">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:"linear-gradient(135deg, #A67C52, #D4AF7A)"}}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:"linear-gradient(135deg, #8B5E3C, #C4823A)"}}>
               <TreePine size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-bold" style={{fontFamily:"'Playfair Display', serif"}}>Vamsha Vruksha</p>
-              <p className="text-green-400 text-xs">Daivadnya Samaj Bangalore</p>
+              <p className="text-white font-bold" style={{fontFamily:"'Playfair Display', serif"}}>Daivajna Samaja</p>
+              <p className="text-green-400 text-xs">Daivajna Samaja Bangalore</p>
             </div>
           </Link>
           <h2 className="text-4xl font-bold text-white mb-4" style={{fontFamily:"'Playfair Display', serif", lineHeight:1.2}}>
             Begin your<br /><span className="gold-shimmer">lineage journey</span><br />today.
           </h2>
-          <p className="text-green-200 text-base leading-relaxed">Join 1,428 families who have documented their heritage and connected with their ancestral roots on Vamsha Vruksha.</p>
+          <p className="text-green-200 text-base leading-relaxed">Join 1,428 families who have documented their heritage and connected with their ancestral roots on Daivajna Samaja.</p>
         </div>
         <div className="space-y-4">
           {[
@@ -56,13 +56,13 @@ export default function RegisterPage() {
           ].map(({icon:Icon, text}) => (
             <div key={text} className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:"rgba(212,175,122,0.15)"}}>
-                <Icon size={16} style={{color:"#D4AF7A"}} />
+                <Icon size={16} style={{color:"#C4823A"}} />
               </div>
               <p className="text-green-300 text-sm">{text}</p>
             </div>
           ))}
         </div>
-        <p className="text-green-600 text-xs">© 2024 Vamsha Vruksha. Preserving Legacies for Generations.</p>
+        <p className="text-green-600 text-xs">© 2024 Daivajna Samaja. Preserving Legacies for Generations.</p>
       </div>
 
       {/* RIGHT: Form */}
@@ -72,7 +72,7 @@ export default function RegisterPage() {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:"linear-gradient(135deg, #1B4332, #2D6A4F)"}}>
               <TreePine size={16} className="text-white" />
             </div>
-            <span className="font-bold" style={{fontFamily:"'Playfair Display', serif", color:"#1B4332"}}>Vamsha Vruksha</span>
+            <span className="font-bold" style={{fontFamily:"'Playfair Display', serif", color:"#1B4332"}}>Daivajna Samaja</span>
           </Link>
           <AnimatePresence mode="wait">
             {step === "details" ? (
@@ -88,9 +88,9 @@ export default function RegisterPage() {
                         onChange={e => (set as (v:string)=>void)(e.target.value)}
                         maxLength={maxLen}
                         className="w-full px-4 py-3 text-sm border rounded-xl outline-none transition-all bg-white"
-                        style={{borderColor:"#E8D5BC"}}
+                        style={{borderColor:"#DFC5A0"}}
                         onFocus={e => e.target.style.borderColor="#1B4332"}
-                        onBlur={e => e.target.style.borderColor="#E8D5BC"}
+                        onBlur={e => e.target.style.borderColor="#DFC5A0"}
                       />
                     </div>
                   ))}
@@ -112,9 +112,9 @@ export default function RegisterPage() {
                   <input type="text" maxLength={6} placeholder="1 2 1 2 1 2" value={otp}
                     onChange={e => setOtp(e.target.value.replace(/\D/g,""))}
                     className="w-full px-6 py-4 text-center text-3xl font-bold tracking-widest border rounded-xl outline-none bg-white"
-                    style={{borderColor:"#E8D5BC", color:"#1B4332", letterSpacing:"0.3em"}}
+                    style={{borderColor:"#DFC5A0", color:"#1B4332", letterSpacing:"0.3em"}}
                     onFocus={e => e.target.style.borderColor="#1B4332"}
-                    onBlur={e => e.target.style.borderColor="#E8D5BC"}
+                    onBlur={e => e.target.style.borderColor="#DFC5A0"}
                     autoFocus
                   />
                   {error && <p className="text-red-500 text-sm">{error}</p>}

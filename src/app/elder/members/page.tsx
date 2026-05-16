@@ -38,7 +38,7 @@ export default function MembersPage() {
       <div className="rounded-2xl p-6 mb-6 flex flex-wrap gap-6 items-center"
         style={{ background: "linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
         <div>
-          <p className="text-green-400 text-xs font-semibold tracking-widest mb-1">DAIVADNYA SAMAJ BANGALORE</p>
+          <p className="text-green-400 text-xs font-semibold tracking-widest mb-1">DAIVAJNA SAMAJA BANGALORE</p>
           <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
             Community Member Registry
           </h2>
@@ -69,11 +69,11 @@ export default function MembersPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none"
-            style={{ borderColor: "#E8D5BC" }}
+            style={{ borderColor: "#DFC5A0" }}
           />
         </div>
         <select value={genderFilter} onChange={e => setGenderFilter(e.target.value)}
-          className="px-3 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor: "#E8D5BC" }}>
+          className="px-3 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor: "#DFC5A0" }}>
           <option value="All">All Genders</option>
           <option value="M">Male</option>
           <option value="F">Female</option>
@@ -87,7 +87,7 @@ export default function MembersPage() {
             className="px-4 py-1.5 rounded-full text-sm font-semibold border transition-all"
             style={branch === b
               ? { background: "#1B4332", color: "white", borderColor: "#1B4332" }
-              : { borderColor: "#E8D5BC", color: "#374151" }
+              : { borderColor: "#DFC5A0", color: "#374151" }
             }>
             {b} {branchCounts[b] != null ? `(${branchCounts[b]})` : ""}
           </button>
@@ -103,7 +103,7 @@ export default function MembersPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.04 }}
             className="rounded-2xl border overflow-hidden hover:shadow-md transition-shadow"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
+            style={{ background: "white", borderColor: "#DFC5A0" }}
           >
             {/* Photo */}
             <div className="relative h-36">
@@ -137,7 +137,7 @@ export default function MembersPage() {
                 <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#F0FBF4", color: "#1B4332", border: "1px solid #B7E4C7" }}>
                   {m.gender === "M" ? "Male" : "Female"}
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#F9F5F0", color: "#A67C52", border: "1px solid #E8D5BC" }}>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#F7F0E8", color: "#8B5E3C", border: "1px solid #DFC5A0" }}>
                   {m.location.split(",")[0]}
                 </span>
               </div>

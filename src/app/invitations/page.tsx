@@ -133,7 +133,7 @@ export default function InvitationsPage() {
         </div>
         <div className="flex gap-3">
           <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border hover:bg-gray-50"
-            style={{ borderColor: "#E8D5BC", color: "#374151" }}>
+            style={{ borderColor: "#DFC5A0", color: "#374151" }}>
             <Share2 size={15} /> Share Itinerary
           </button>
           <button
@@ -169,14 +169,14 @@ export default function InvitationsPage() {
               className="w-full mt-3 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all"
               style={optimized
                 ? { background: "rgba(255,255,255,0.1)", color: "#86EFAC" }
-                : { background: "linear-gradient(135deg, #A67C52, #D4AF7A)", color: "white" }
+                : { background: "linear-gradient(135deg, #8B5E3C, #C4823A)", color: "white" }
               }>
               <Route size={14} /> {optimized ? "✓ Route Optimised" : "Plan Optimised Route"}
             </button>
           </div>
 
           {/* Family list */}
-          <div className="rounded-2xl border overflow-hidden flex-1" style={{ background: "white", borderColor: "#E8D5BC" }}>
+          <div className="rounded-2xl border overflow-hidden flex-1" style={{ background: "white", borderColor: "#DFC5A0" }}>
             <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: "#F3F4F6" }}>
               <h3 className="font-bold text-sm" style={{ color: "#0D2B1E" }}>
                 Select Invitees ({selected.length} selected)
@@ -206,7 +206,7 @@ export default function InvitationsPage() {
                     </div>
                     {/* Photo */}
                     <div className="w-11 h-11 rounded-full overflow-hidden border-2 shrink-0"
-                      style={{ borderColor: isSelected ? "#1B4332" : "#E8D5BC" }}>
+                      style={{ borderColor: isSelected ? "#1B4332" : "#DFC5A0" }}>
                       <img src={fam.photo} alt={fam.name} className="w-full h-full object-cover" />
                     </div>
                     {/* Info */}
@@ -234,7 +234,7 @@ export default function InvitationsPage() {
         {/* ── RIGHT: Map + Itinerary ── */}
         <div className="lg:col-span-3 flex flex-col gap-4">
           {/* Map */}
-          <div className="rounded-2xl overflow-hidden" style={{ height: "420px", border: "1px solid #E8D5BC" }}>
+          <div className="rounded-2xl overflow-hidden" style={{ height: "420px", border: "1px solid #DFC5A0" }}>
             <RouteMap
               families={mapFamilies}
               selected={routeOrder}
@@ -245,7 +245,7 @@ export default function InvitationsPage() {
 
           {/* Journey itinerary */}
           {orderedFamilies.length > 0 && (
-            <div className="rounded-2xl border overflow-hidden" style={{ background: "white", borderColor: "#E8D5BC" }}>
+            <div className="rounded-2xl border overflow-hidden" style={{ background: "white", borderColor: "#DFC5A0" }}>
               <div className="p-4 border-b" style={{ borderColor: "#F3F4F6" }}>
                 <h3 className="font-bold flex items-center gap-2" style={{ color: "#0D2B1E" }}>
                   <Route size={16} style={{ color: "#1B4332" }} /> Journey Itinerary
@@ -265,16 +265,16 @@ export default function InvitationsPage() {
                         {/* Timeline */}
                         <div className="flex flex-col items-center shrink-0" style={{ paddingTop: "2px" }}>
                           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                            style={{ background: isFirst ? "linear-gradient(135deg,#A67C52,#D4AF7A)" : "linear-gradient(135deg,#1B4332,#2D6A4F)" }}>
+                            style={{ background: isFirst ? "linear-gradient(135deg,#8B5E3C,#C4823A)" : "linear-gradient(135deg,#1B4332,#2D6A4F)" }}>
                             {idx + 1}
                           </div>
-                          {!isLast && <div className="w-0.5 flex-1 mt-1" style={{ background: "#E8D5BC", minHeight: "20px" }} />}
+                          {!isLast && <div className="w-0.5 flex-1 mt-1" style={{ background: "#DFC5A0", minHeight: "20px" }} />}
                         </div>
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full overflow-hidden border-2 shrink-0"
-                              style={{ borderColor: "#E8D5BC" }}>
+                              style={{ borderColor: "#DFC5A0" }}>
                               <img src={fam.photo} alt={fam.name} className="w-full h-full object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -303,7 +303,7 @@ export default function InvitationsPage() {
                           >
                             <div className="px-16 pb-4 space-y-2">
                               <p className="text-xs text-gray-500 flex items-start gap-1.5">
-                                <MapPin size={11} className="shrink-0 mt-0.5" style={{ color: "#A67C52" }} />
+                                <MapPin size={11} className="shrink-0 mt-0.5" style={{ color: "#8B5E3C" }} />
                                 {fam.address}
                               </p>
                               {fam.note && (
