@@ -1,11 +1,14 @@
-// Real Indian portrait photos fetched via randomuser.me ?nat=in
-// Keys match FAMILY_MEMBERS ids; "elder" is for the Elder login profile
+// Real Indian portrait photos from Pexels (verified 200 OK, free for demo use)
+// https://www.pexels.com/license/
+const PX = (id: number) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop`;
+
 export const AVATAR_SVGS: Record<string, string> = {
-  "1": "https://randomuser.me/api/portraits/men/66.jpg",    // Ramachandra Shet — elderly patriarch (73yo Indian male)
-  "2": "https://randomuser.me/api/portraits/women/60.jpg",  // Savitribai Shet — elderly matriarch (80yo Indian female)
-  "3": "https://randomuser.me/api/portraits/men/70.jpg",    // Venkatesh Kamat — grandfather (71yo Indian male)
-  "4": "https://randomuser.me/api/portraits/men/33.jpg",    // Suresh Kamat — father (41yo Indian male)
-  "5": "https://randomuser.me/api/portraits/women/54.jpg",  // Rekha Pai — aunt (55yo Indian female)
-  "6": "https://randomuser.me/api/portraits/women/26.jpg",  // Priya Kamat — self (young Indian female)
-  "elder": "https://randomuser.me/api/portraits/men/64.jpg", // Shri Narayanarao Shet — Elder (66yo Indian male)
+  "1":      PX(4053536),   // Ramachandra Shet — elderly patriarch, weathered face
+  "2":      PX(11138457),  // Savitribai Shet  — elderly matriarch, red bindi
+  "3":      PX(2601464),   // Venkatesh Kamat  — grandfather
+  "4":      PX(5746790),   // Suresh Kamat     — father, young-middle-aged male
+  "5":      PX(34515496),  // Rekha Pai        — aunt, colourful sari
+  "6":      PX(7485047),   // Priya Kamat      — self, young Indian woman
+  "elder":  PX(17815020),  // Shri Narayanarao Shet — Elder/Admin, grey beard
 };

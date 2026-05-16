@@ -1,6 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+const PX = (id: number) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop`;
+// Arjun Shenoy (young male), Divya Nayak (young female)
+const ELDER_QUEUE_PHOTOS = [PX(7345266), PX(30004176)];
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -123,7 +128,7 @@ export default function ElderDashboard() {
                 <div className="flex gap-4 mb-4">
                   <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0">
                     <img
-                      src={`https://i.pravatar.cc/100?img=${(i + 53) % 70}`}
+                      src={ELDER_QUEUE_PHOTOS[i]}
                       alt={member.name}
                       className="w-full h-full object-cover"
                     />

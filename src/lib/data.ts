@@ -1,4 +1,6 @@
 // Daivadnya Samaj Bangalore — Demo data
+const PX = (id: number) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop`;
 
 export const TEST_USERS = [
   {
@@ -134,7 +136,7 @@ export const MATRIMONIAL_CANDIDATES = [
     verified: true,
     matrimonialFee: true,
     avatar: "AK",
-    photo: "https://randomuser.me/api/portraits/women/41.jpg",
+    photo: PX(17184880),  // young Indian woman in traditional attire
   },
   {
     id: "rohit-s",
@@ -168,7 +170,7 @@ export const MATRIMONIAL_CANDIDATES = [
     verified: true,
     matrimonialFee: false,
     avatar: "RS",
-    photo: "https://randomuser.me/api/portraits/men/58.jpg",
+    photo: PX(3131428),   // young South Asian man
   },
   {
     id: "sneha-n",
@@ -202,7 +204,7 @@ export const MATRIMONIAL_CANDIDATES = [
     verified: true,
     matrimonialFee: true,
     avatar: "SN",
-    photo: "https://randomuser.me/api/portraits/women/5.jpg",
+    photo: PX(29201034),  // young Indian woman
   },
   {
     id: "karthik-p",
@@ -236,7 +238,7 @@ export const MATRIMONIAL_CANDIDATES = [
     verified: true,
     matrimonialFee: false,
     avatar: "KP",
-    photo: "https://randomuser.me/api/portraits/men/20.jpg",
+    photo: PX(1856477),   // young Indian man
   },
 ];
 
@@ -291,7 +293,7 @@ export const DASHBOARD_ACTIVITY = [
     time: "2 hours ago",
     type: "archive",
     avatar: "VK",
-    photo: "https://randomuser.me/api/portraits/men/70.jpg",
+    photo: PX(2601464),
   },
   {
     id: 2,
@@ -301,7 +303,7 @@ export const DASHBOARD_ACTIVITY = [
     time: "Yesterday",
     type: "tree",
     avatar: "NS",
-    photo: "https://randomuser.me/api/portraits/men/64.jpg",
+    photo: PX(17815020),
   },
   {
     id: 3,
@@ -311,7 +313,7 @@ export const DASHBOARD_ACTIVITY = [
     time: "Today",
     type: "birthday",
     avatar: "RP",
-    photo: "https://randomuser.me/api/portraits/women/54.jpg",
+    photo: PX(34515496),
   },
 ];
 

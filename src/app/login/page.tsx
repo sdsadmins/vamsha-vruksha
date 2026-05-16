@@ -17,7 +17,7 @@ const DEMO_PROFILES: { user: VVUser; label: string; description: string; subDesc
     color: "#1B4332",
     accent: "#D4AF7A",
     icon: <User size={24} />,
-    photo: "https://randomuser.me/api/portraits/women/26.jpg",
+    photo: "https://images.pexels.com/photos/7485047/pexels-photo-7485047.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop",
     features: ["Family Tree", "Matrimonial Hub", "Welfare Campaigns", "Member Directory"],
   },
   {
@@ -29,7 +29,7 @@ const DEMO_PROFILES: { user: VVUser; label: string; description: string; subDesc
     color: "#6B4226",
     accent: "#D4AF7A",
     icon: <Shield size={24} />,
-    photo: "https://randomuser.me/api/portraits/men/64.jpg",
+    photo: "https://images.pexels.com/photos/17815020/pexels-photo-17815020.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop",
     features: ["Member Verification", "Lineage Management", "Community Oversight", "Full Admin Access"],
   },
 ];
