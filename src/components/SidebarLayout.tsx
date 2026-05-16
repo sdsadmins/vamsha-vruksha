@@ -4,16 +4,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   TreePine, LayoutDashboard, Heart, Users, Shield,
-  LogOut, Bell, ChevronRight, Menu, User, Lock
+  LogOut, Bell, ChevronRight, Menu, User, Lock, Navigation, Map
 } from "lucide-react";
 import { getUser, clearUser, type VVUser } from "@/lib/auth";
 import { AVATAR_SVGS } from "@/lib/avatarSvgs";
 
 const MEMBER_NAV = [
   { icon: LayoutDashboard, label: "Dashboard",   href: "/dashboard" },
-  { icon: TreePine,        label: "Family Tree",  href: "/family-tree" },
-  { icon: Heart,           label: "Matrimonial",  href: "/matrimonial" },
-  { icon: Users,           label: "Welfare",      href: "/welfare" },
+  { icon: TreePine,        label: "Family Tree", href: "/family-tree" },
+  { icon: Navigation,      label: "Invitations", href: "/invitations" },
+  { icon: Map,             label: "Directory",   href: "/directory" },
+  { icon: Heart,           label: "Matrimonial", href: "/matrimonial" },
+  { icon: Users,           label: "Welfare",     href: "/welfare" },
 ];
 
 const ELDER_NAV = [
