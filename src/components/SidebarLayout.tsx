@@ -17,12 +17,12 @@ const MEMBER_NAV = [
 ];
 
 const ELDER_NAV = [
-  { icon: LayoutDashboard, label: "Overview",       href: "/elder" },
-  { icon: TreePine,        label: "Family Tree",    href: "/family-tree" },
-  { icon: Shield,          label: "Verifications",  href: "/elder" },
-  { icon: Heart,           label: "Matrimonial",    href: "/matrimonial" },
-  { icon: Users,           label: "Welfare",        href: "/welfare" },
-  { icon: LayoutDashboard, label: "Member Portal",  href: "/dashboard" },
+  { icon: LayoutDashboard, label: "Overview",        href: "/elder" },
+  { icon: TreePine,        label: "Family Tree",     href: "/family-tree" },
+  { icon: Shield,          label: "Verifications",   href: "/elder/verifications" },
+  { icon: Users,           label: "Members",         href: "/elder/members" },
+  { icon: Heart,           label: "Matrimonial",     href: "/matrimonial" },
+  { icon: Users,           label: "Welfare",         href: "/welfare" },
 ];
 
 interface Props {

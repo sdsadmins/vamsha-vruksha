@@ -1,11 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-const PX = (id: number) =>
-  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop`;
-// Arjun Shenoy (young male), Divya Nayak (young female)
-const ELDER_QUEUE_PHOTOS = [PX(7345266), PX(30004176)];
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -15,13 +10,16 @@ import {
   AlertTriangle,
   Settings,
   FileText,
-  Download,
   Calendar,
   CheckCircle,
 } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { ELDER_QUEUE } from "@/lib/data";
 import { getUser } from "@/lib/auth";
+
+const PX = (id: number) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop`;
+const ELDER_QUEUE_PHOTOS = [PX(7345266), PX(30004176)];
 
 export default function ElderDashboard() {
   const router = useRouter();
@@ -33,15 +31,9 @@ export default function ElderDashboard() {
   }, [router]);
 
   const STATS = [
-    { label: "Total Members", val: "1,428", sub: "+12 this week", icon: Users, color: "#1B4332" },
-    {
-      label: "Pending Verifications",
-      val: "24",
-      sub: "↑ High priority",
-      icon: Shield,
-      color: "#D97706",
-    },
-    { label: "Active Trees", val: "86", sub: "Global connections", icon: TreePine, color: "#1B4332" },
+    { label: "Total Members", val: "1,428", sub: "+12 this week", icon: Users, color: "#1B4332", href: "/elder/members" },
+    { label: "Pending Verifications", val: "24", sub: "↑ High priority", icon: Shield, color: "#D97706", href: "/elder/verifications" },
+    { label: "Active Trees", val: "86", sub: "Global connections", icon: TreePine, color: "#1B4332", href: "/family-tree" },
   ];
 
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May"];
@@ -51,39 +43,36 @@ export default function ElderDashboard() {
     <SidebarLayout title="Elder Portal">
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        {STATS.map(({ label, val, sub, icon: Icon, color }, i) => (
+        {STATS.map(({ label, val, sub, icon: Icon, color, href }, i) => (
           <motion.div
             key={label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="rounded-2xl p-5 border"
-            style={{ background: "white", borderColor: "#E8D5BC" }}
           >
-            <div className="flex justify-between items-start mb-3">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: color === "#D97706" ? "#FEF3C7" : "#D1FAE5" }}
-              >
-                <Icon size={20} style={{ color }} />
-              </div>
-              {color === "#D97706" && (
-                <span
-                  className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                  style={{ background: "#FEF3C7", color: "#D97706" }}
+            <Link href={href} className="block rounded-2xl p-5 border hover:shadow-md transition-shadow cursor-pointer"
+              style={{ background: "white", borderColor: "#E8D5BC" }}>
+              <div className="flex justify-between items-start mb-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: color === "#D97706" ? "#FEF3C7" : "#D1FAE5" }}
                 >
-                  Urgent
-                </span>
-              )}
-            </div>
-            <p
-              className="text-3xl font-bold mb-0.5"
-              style={{ fontFamily: "'Playfair Display', serif", color }}
-            >
-              {val}
-            </p>
-            <p className="text-sm font-medium text-gray-700">{label}</p>
-            <p className="text-xs text-gray-400">{sub}</p>
+                  <Icon size={20} style={{ color }} />
+                </div>
+                {color === "#D97706" && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                    style={{ background: "#FEF3C7", color: "#D97706" }}>
+                    Urgent
+                  </span>
+                )}
+              </div>
+              <p className="text-3xl font-bold mb-0.5"
+                style={{ fontFamily: "'Playfair Display', serif", color }}>
+                {val}
+              </p>
+              <p className="text-sm font-medium text-gray-700">{label}</p>
+              <p className="text-xs text-gray-400">{sub}</p>
+            </Link>
           </motion.div>
         ))}
       </div>
@@ -115,7 +104,7 @@ export default function ElderDashboard() {
                 </span>
                 Needs Your Vouch
               </h2>
-              <Link href="#" className="text-xs font-semibold" style={{ color: "#1B4332" }}>
+              <Link href="/elder/verifications" className="text-xs font-semibold" style={{ color: "#1B4332" }}>
                 View all 24 →
               </Link>
             </div>
@@ -180,12 +169,13 @@ export default function ElderDashboard() {
                     <CheckCircle size={16} />
                     {vouched.includes(member.id) ? "Vouched ✓" : "Vouch"}
                   </button>
-                  <button
-                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all hover:bg-gray-50"
+                  <Link
+                    href={`/elder/verifications/${member.id}`}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all hover:bg-gray-50 flex items-center justify-center"
                     style={{ borderColor: "#E8D5BC", color: "#4B5563" }}
                   >
                     🔍 Review Records
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}
@@ -308,13 +298,14 @@ export default function ElderDashboard() {
             </h3>
             <div className="divide-y" style={{ borderColor: "#F3F4F6" }}>
               {[
-                { icon: Calendar, label: "Manage Events" },
-                { icon: Settings, label: "Verification Settings" },
-                { icon: FileText, label: "Digital Archive" },
-                { icon: Download, label: "Export Records" },
-              ].map(({ icon: Icon, label }) => (
-                <button
+                { icon: Calendar, label: "Manage Events",          href: "/elder/events" },
+                { icon: Settings, label: "Verification Settings",  href: "/elder/verifications" },
+                { icon: FileText, label: "Digital Archive",        href: "/elder/archive" },
+                { icon: Users,    label: "Member Directory",       href: "/elder/members" },
+              ].map(({ icon: Icon, label, href }) => (
+                <Link
                   key={label}
+                  href={href}
                   className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -322,7 +313,7 @@ export default function ElderDashboard() {
                     <span className="text-sm font-medium">{label}</span>
                   </div>
                   <span className="text-gray-400 text-lg">›</span>
-                </button>
+                </Link>
               ))}
             </div>
           </motion.div>
