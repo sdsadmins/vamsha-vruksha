@@ -77,13 +77,15 @@ export default function WelfarePage() {
               </div>
             ))}
           </div>
-          <Link
-            href="/welfare/campaign/new"
-            className="shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm"
-            style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)", color: "white" }}
-          >
-            <PlusCircle size={16} /> Start Campaign
-          </Link>
+          {user?.role === "elder" && (
+            <Link
+              href="/welfare/campaign/new"
+              className="shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm"
+              style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)", color: "white" }}
+            >
+              <PlusCircle size={16} /> Start Campaign
+            </Link>
+          )}
         </div>
       </motion.div>
 

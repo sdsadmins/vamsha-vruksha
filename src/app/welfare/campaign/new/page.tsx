@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Upload, CheckCircle } from "lucide-react";
+import { ArrowLeft, Upload, CheckCircle, Lock } from "lucide-react";
+import { getUser, clearUser } from "@/lib/auth";
 
 const CATEGORIES = ["Cultural Heritage", "Education", "Infrastructure", "Health & Welfare", "Youth Development", "Elder Support"];
 const STEPS = ["Details", "Funding", "Transparency"];
@@ -10,9 +11,50 @@ export default function NewCampaignPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [form, setForm] = useState({ title: "", category: "Cultural Heritage", story: "", goal: "", minDonation: "100", endDate: "", impactDesc: "" });
 
+  useEffect(() => {
+    const u = getUser();
+    if (!u) { router.push("/login"); return; }
+    setAuthorized(u.role === "elder");
+  }, [router]);
+
   const update = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  if (authorized === null) return null;
+
+  if (!authorized) return (
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: "#FAF7F2" }}>
+      <div className="text-center max-w-sm">
+        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: "#FEF3C7" }}>
+          <Lock size={36} style={{ color: "#A67C52" }} />
+        </div>
+        <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", color: "#1B4332" }}>
+          Elder Access Required
+        </h2>
+        <p className="text-gray-500 text-sm mb-6">
+          Only verified Elders and Administrators can start welfare campaigns. All campaigns require Elder committee approval before going live.
+        </p>
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={() => { clearUser(); router.push("/login"); }}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+            style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)" }}
+          >
+            Switch to Elder Login
+          </button>
+          <button
+            onClick={() => router.push("/welfare")}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold border"
+            style={{ borderColor: "#E8D5BC", color: "#1B4332" }}
+          >
+            Back to Welfare
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   if (submitted) return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{backgroundColor: "#FAF7F2"}}>
