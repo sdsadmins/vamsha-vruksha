@@ -205,32 +205,40 @@ export default function ElderDashboard() {
               {[
                 {
                   type: "⚠️",
+                  id: "ck-1",
                   title: "Potential Duplicate Detected",
                   desc: 'Profile "Ananth Rao (1892–1954)" in the Mysore branch matches the Bangalore branch. Elder intervention required.',
-                  actions: ["Resolve Now", "Dismiss"],
+                  primaryLabel: "Resolve Now",
+                  primaryHref: "/elder/conflict/ck-1",
                 },
                 {
                   type: "⛓️",
+                  id: "ck-2",
                   title: "Lineage Conflict",
                   desc: 'Conflicting parentage for "Savitri Bai". Three descendants provide different genealogical accounts from oral history.',
-                  actions: ["Open Mediation", "View Proofs"],
+                  primaryLabel: "Open Mediation",
+                  primaryHref: "/elder/conflict/ck-2",
                 },
-              ].map(({ type, title, desc, actions }) => (
+              ].map(({ type, title, desc, primaryLabel, primaryHref }) => (
                 <div key={title} className="p-4 flex gap-3">
                   <span className="text-2xl shrink-0">{type}</span>
                   <div>
                     <p className="font-semibold text-sm mb-1">{title}</p>
                     <p className="text-xs text-gray-500 leading-relaxed mb-2">{desc}</p>
                     <div className="flex gap-2">
-                      {actions.map((a) => (
-                        <button
-                          key={a}
-                          className="px-3 py-1.5 text-xs rounded-lg font-semibold border hover:bg-green-50 transition-colors"
-                          style={{ borderColor: "#1B4332", color: "#1B4332" }}
-                        >
-                          {a}
-                        </button>
-                      ))}
+                      <Link
+                        href={primaryHref}
+                        className="px-3 py-1.5 text-xs rounded-lg font-semibold border hover:bg-green-50 transition-colors"
+                        style={{ borderColor: "#1B4332", color: "#1B4332" }}
+                      >
+                        {primaryLabel}
+                      </Link>
+                      <button
+                        className="px-3 py-1.5 text-xs rounded-lg font-semibold border hover:bg-gray-50 transition-colors"
+                        style={{ borderColor: "#E8D5BC", color: "#6B7280" }}
+                      >
+                        Dismiss
+                      </button>
                     </div>
                   </div>
                 </div>

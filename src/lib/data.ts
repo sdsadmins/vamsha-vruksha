@@ -771,3 +771,94 @@ export const INVITATION_FAMILIES = [
     estimatedVisit: "60 min",
   },
 ];
+
+// ── Lineage Conflict Cases — for elder conflict resolution portal ──────────────
+const PX2 = (id: number) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop`;
+
+export const CONFLICT_CASES = [
+  {
+    id: "ck-1",
+    type: "Duplicate",
+    subject: "Ananth Rao Kamath",
+    born: "1892",
+    died: "1954",
+    photo: PX2(4053536),
+    conflictTitle: "POTENTIAL DUPLICATE DETECTED",
+    conflictDesc: "Profile 'Ananth Rao (1892–1954)' appears in both the Mysore and Bangalore branches with conflicting parentage and profession records.",
+    versionA: {
+      label: "Version A — Mysore Branch",
+      backed: true,
+      fields: [
+        { label: "Father", value: "Ramachandra Rao Kamath" },
+        { label: "Profession", value: "Goldsmith & Temple Trustee" },
+        { label: "Native", value: "Mysore, Karnataka" },
+        { label: "Source", value: "Official temple records, 1924" },
+      ],
+      evidence: ["Temple Trust Document (1924)", "Family Photo – 1940s"],
+      submittedBy: "Smt. Vijaya Kamath (Granddaughter, Mysore Branch)",
+      submittedPhoto: PX2(11138457),
+      votes: 7,
+    },
+    versionB: {
+      label: "Version B — Bangalore Branch",
+      backed: false,
+      fields: [
+        { label: "Father", value: "Govind Rao Kamath" },
+        { label: "Profession", value: "Jeweller & Trader" },
+        { label: "Native", value: "Bengaluru, Karnataka" },
+        { label: "Source", value: "Oral history — family reunion, 1978" },
+      ],
+      evidence: ["Oral History Recording (1978)", "Ration Card copy"],
+      submittedBy: "Shri Ramesh Kamath (Nephew, Bengaluru Branch)",
+      submittedPhoto: PX2(2601464),
+      votes: 3,
+    },
+    discussion: [
+      { author: "Shri Narayanarao Shet", role: "Elder", text: "I've reviewed both submissions. The temple trust document from 1924 is the stronger evidence — it has Ramachandra Rao as father with witness signatures.", time: "2 days ago", photo: PX2(17815020) },
+      { author: "Smt. Vijaya Kamath", role: "Member", text: "The Mysore branch has the original family trunk documents. I can bring them to the next Samaj meeting for physical review.", time: "1 day ago", photo: PX2(11138457) },
+    ],
+  },
+  {
+    id: "ck-2",
+    type: "Parentage",
+    subject: "Savitri Bai Shet",
+    born: "1910",
+    died: "1994",
+    photo: PX2(11138457),
+    conflictTitle: "PARENTAGE CONFLICT",
+    conflictDesc: "Three descendants have provided conflicting accounts of Savitri Bai's biological mother, with differing birth years from oral histories.",
+    versionA: {
+      label: "Version A — Official Records",
+      backed: true,
+      fields: [
+        { label: "Mother", value: "Amala Devi Shet" },
+        { label: "Birth Year", value: "1910 (Official Certificate)" },
+        { label: "Native", value: "Kundapura, Udupi" },
+        { label: "Source", value: "Birth certificate & Land deed" },
+      ],
+      evidence: ["Birth Certificate (1910)", "Land Deed – family name listed"],
+      submittedBy: "Arjun V. Shenoy (Grandson)",
+      submittedPhoto: PX2(7345266),
+      votes: 5,
+    },
+    versionB: {
+      label: "Version B — Oral History",
+      backed: false,
+      fields: [
+        { label: "Mother", value: "Gauri Amma Shet" },
+        { label: "Birth Year", value: "1908 (Oral history)" },
+        { label: "Native", value: "Kumta, Uttara Kannada" },
+        { label: "Source", value: "Voice recording – family oral testimony, 1985" },
+      ],
+      evidence: ["Voice Recording (1985): \"Great-aunt Meena recalls Savitri was born before the Great Flood of 1910...\""],
+      submittedBy: "Ramesh K. Nayak (Nephew)",
+      submittedPhoto: PX2(5746790),
+      votes: 2,
+    },
+    discussion: [
+      { author: "Vasudeva Kamath", role: "Elder, Kumta Branch", text: "The 1985 oral recording is important cultural evidence but birth certificates take precedence in lineage records per our 2019 governance guidelines.", time: "3 days ago", photo: PX2(2601464) },
+      { author: "Arjun Shenoy", role: "Member", text: "I have the original birth certificate in the family trunk. Amala Devi is clearly listed as mother. I can courier a notarised copy.", time: "1 day ago", photo: PX2(7345266) },
+    ],
+  },
+];

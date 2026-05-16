@@ -137,7 +137,7 @@ export default function ProfilePage() {
                 ))}
               </div>
 
-              <div className="flex gap-3 mb-4">
+              <div className="flex gap-3 mb-3">
                 <button
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 border transition-all hover:-translate-y-0.5"
                   style={{ borderColor: "#1B4332", color: "#1B4332" }}
@@ -151,6 +151,13 @@ export default function ProfilePage() {
                   <Edit2 size={15} /> Edit Profile
                 </button>
               </div>
+              <Link
+                href="/profile/verify"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border mb-4 transition-all hover:bg-amber-50"
+                style={{ borderColor: "#D4AF7A", color: "#A67C52" }}
+              >
+                🛡️ Verify &amp; Update Info
+              </Link>
 
               {/* Location */}
               <div

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { TreePine, Heart, Users, Shield, Calendar, ArrowRight, TrendingUp, Award, MapPin } from "lucide-react";
+import { TreePine, Heart, Users, Shield, Calendar, ArrowRight, TrendingUp, MapPin, Navigation } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { getUser, type VVUser } from "@/lib/auth";
 import { DASHBOARD_ACTIVITY, WELFARE_CAMPAIGNS, MATRIMONIAL_CANDIDATES } from "@/lib/data";
@@ -70,10 +70,10 @@ const STAT_DATA = [
 ];
 
 const QUICK_ACTIONS = [
-  { label: "View Family Tree",  icon: TreePine, href: "/family-tree",  desc: "Explore your lineage"  },
-  { label: "Matrimonial Hub",   icon: Heart,    href: "/matrimonial",  desc: "47 active profiles"    },
-  { label: "Welfare Portal",    icon: Users,    href: "/welfare",      desc: "₹42.5L raised"         },
-  { label: "Elder Portal",      icon: Shield,   href: "/elder",        desc: "Community governance"  },
+  { label: "View Family Tree",     icon: TreePine,   href: "/family-tree",  desc: "Explore your lineage"  },
+  { label: "Matrimonial Hub",      icon: Heart,      href: "/matrimonial",  desc: "47 active profiles"    },
+  { label: "Plan Invitations",     icon: Navigation, href: "/invitations",  desc: "Route planner & map"   },
+  { label: "Welfare Portal",       icon: Users,      href: "/welfare",      desc: "₹42.5L raised"         },
 ];
 
 const ACTIVITY_ICONS: Record<string, string> = {
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <Link
-                      href="/welfare"
+                      href={`/welfare/donate/${c.id}`}
                       className="shrink-0 px-4 py-2 rounded-xl text-xs font-semibold text-white"
                       style={{
                         background:

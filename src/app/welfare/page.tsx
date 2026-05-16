@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { PlusCircle, TrendingUp } from "lucide-react";
+import { PlusCircle, TrendingUp, BarChart2 } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { WELFARE_CAMPAIGNS } from "@/lib/data";
 import { getUser, type VVUser } from "@/lib/auth";
@@ -164,22 +164,13 @@ export default function WelfarePage() {
                             />
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDonate(c.id)}
-                          className="shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-                          style={{
-                            background: donated[c.id]
-                              ? "#2D6A4F"
-                              : "linear-gradient(135deg, #1B4332, #2D6A4F)",
-                            opacity: donating === c.id ? 0.7 : 1,
-                          }}
+                        <Link
+                          href={`/welfare/donate/${c.id}`}
+                          className="shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
+                          style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}
                         >
-                          {donating === c.id
-                            ? "Processing..."
-                            : donated[c.id]
-                            ? "✓ Donated! 🙏"
-                            : "Contribute →"}
-                        </button>
+                          Contribute →
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -245,6 +236,32 @@ export default function WelfarePage() {
             >
               {donated["quick"] ? "✓ Thank You! 🙏" : "Support Welfare"}
             </button>
+          </motion.div>
+
+          {/* Impact Report CTA */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.35 }}
+            className="rounded-2xl overflow-hidden border"
+            style={{ borderColor: "#E8D5BC" }}
+          >
+            <div className="p-5" style={{ background: "linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
+              <BarChart2 size={24} className="text-green-400 mb-2" />
+              <p className="text-white font-bold mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Heritage Impact 2024–25
+              </p>
+              <p className="text-green-300 text-xs mb-4">
+                See exactly where every rupee goes — full transparency report.
+              </p>
+              <Link
+                href="/welfare/impact"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+                style={{ background: "linear-gradient(135deg, #A67C52, #D4AF7A)", color: "white" }}
+              >
+                View Impact Report →
+              </Link>
+            </div>
           </motion.div>
 
           {/* Impact Stories */}
