@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   TreePine, LayoutDashboard, Heart, Users, Shield,
-  LogOut, Bell, ChevronRight, Menu, User, Lock, Navigation, Map
+  LogOut, Bell, ChevronRight, Menu, User, Lock, Navigation, Map,
+  Archive, MessageSquare, Settings, HelpCircle
 } from "lucide-react";
 import { getUser, clearUser, type VVUser } from "@/lib/auth";
 import { AVATAR_SVGS } from "@/lib/avatarSvgs";
@@ -19,12 +20,12 @@ const MEMBER_NAV = [
 ];
 
 const ELDER_NAV = [
-  { icon: LayoutDashboard, label: "Overview",        href: "/elder" },
-  { icon: TreePine,        label: "Family Tree",     href: "/family-tree" },
-  { icon: Shield,          label: "Verifications",   href: "/elder/verifications" },
-  { icon: Users,           label: "Members",         href: "/elder/members" },
-  { icon: Heart,           label: "Matrimonial",     href: "/matrimonial" },
-  { icon: Users,           label: "Welfare",         href: "/welfare" },
+  { icon: TreePine,        label: "Lineage Tree",    href: "/elder" },
+  { icon: Shield,          label: "Member Requests", href: "/elder/verifications" },
+  { icon: Archive,         label: "Archives",        href: "/elder/archive" },
+  { icon: Users,           label: "Community",       href: "/elder/members" },
+  { icon: MessageSquare,   label: "Moderation",      href: "/elder/conflict/ck-1" },
+  { icon: Settings,        label: "Settings",        href: "/elder/events" },
 ];
 
 interface Props {
@@ -114,7 +115,7 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map(({ icon: Icon, label, href }) => {
-          const active = pathname === href;
+          const active = pathname === href || (href !== "/dashboard" && href !== "/elder" && pathname.startsWith(href));
           return (
             <Link
               key={label}
@@ -133,22 +134,57 @@ export default function SidebarLayout({ children, title, requiredRole }: Props) 
             </Link>
           );
         })}
+
+        {/* Welfare sub-nav (shown when on /welfare/* pages) */}
+        {!isElder && pathname.startsWith("/welfare") && (
+          <div className="mt-2 pt-2 border-t border-white/10">
+            <p className="text-xs font-semibold px-4 mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>WELFARE PORTAL</p>
+            {[
+              { label: "Dashboard",         href: "/welfare" },
+              { label: "Fundraising",       href: "/welfare" },
+              { label: "My Contributions",  href: "/welfare/donate/temple-restoration" },
+              { label: "Community",         href: "/welfare" },
+              { label: "Impact Report",     href: "/welfare/impact" },
+            ].map(({ label, href }) => (
+              <Link key={label} href={href}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs transition-all"
+                style={pathname === href && label === "Dashboard"
+                  ? { color: "#52B788", background: "rgba(82,183,136,0.1)" }
+                  : { color: "rgba(255,255,255,0.5)" }
+                }>
+                <span className="w-1 h-1 rounded-full shrink-0" style={{ background: "rgba(255,255,255,0.3)" }} />
+                {label}
+              </Link>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Bottom */}
       <div className="px-3 py-4 border-t border-white/10 space-y-1">
-        <Link
-          href={`/profile/${user?.avatar ?? "6"}`}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/5"
-          style={{ color: "rgba(255,255,255,0.5)" }}
-        >
-          <User size={18} /><span className="text-sm">My Profile</span>
-        </Link>
+        {isElder ? (
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/5"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
+            <HelpCircle size={18} /><span className="text-sm">Help Center</span>
+          </Link>
+        ) : (
+          <Link
+            href={`/profile/${user?.avatar ?? "6"}`}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/5"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
+            <User size={18} /><span className="text-sm">My Profile</span>
+          </Link>
+        )}
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-red-400 hover:bg-red-400/10"
         >
-          <LogOut size={18} /><span className="text-sm">Sign Out</span>
+          <LogOut size={18} /><span className="text-sm">Logout</span>
         </button>
       </div>
     </aside>

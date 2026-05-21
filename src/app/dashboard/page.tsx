@@ -238,6 +238,36 @@ export default function DashboardPage() {
             </div>
           </motion.div>
 
+          {/* Invitation Planner Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+            className="rounded-2xl overflow-hidden border"
+            style={{ background: "white", borderColor: "#DFC5A0" }}
+          >
+            <div className="flex items-center gap-4 p-5"
+              style={{ background: "linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: "rgba(255,255,255,0.12)" }}>
+                <Navigation size={22} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  Invitation Planner
+                </p>
+                <p className="text-green-300 text-xs mt-0.5">
+                  Plan your visit route for the Annual Reunion
+                </p>
+              </div>
+              <Link href="/invitations"
+                className="shrink-0 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 transition-all hover:-translate-y-0.5"
+                style={{ background: "linear-gradient(135deg, #C4823A, #8B5E3C)", color: "white" }}>
+                Plan Route <ArrowRight size={14} />
+              </Link>
+            </div>
+          </motion.div>
+
           {/* Active Campaigns */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

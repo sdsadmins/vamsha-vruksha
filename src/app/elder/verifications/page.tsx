@@ -2,19 +2,23 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Search, CheckCircle, AlertTriangle, Clock, Filter } from "lucide-react";
+import { Search, CheckCircle, AlertTriangle, Clock, Shield, TrendingUp, FileText, Image, ChevronRight } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { VERIFICATION_REQUESTS } from "@/lib/data";
 
 const RISK_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  low:    { bg: "#D1FAE5", text: "#065F46", label: "Low Risk"   },
-  medium: { bg: "#FEF3C7", text: "#D97706", label: "Med Risk"   },
-  high:   { bg: "#FEE2E2", text: "#DC2626", label: "High Risk"  },
+  low:    { bg: "#D1FAE5", text: "#065F46", label: "Low Risk"  },
+  medium: { bg: "#FEF3C7", text: "#D97706", label: "Med Risk"  },
+  high:   { bg: "#FEE2E2", text: "#DC2626", label: "High Risk" },
 };
 
+const VELOCITY_MONTHS = ["W1", "W2", "W3", "W4"];
+const VELOCITY_DATA   = [6, 9, 11, 14];
+
 export default function VerificationsPage() {
-  const [search, setSearch] = useState("");
+  const [search, setSearch]       = useState("");
   const [riskFilter, setRiskFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All Status");
 
   const filtered = useMemo(() => {
     return VERIFICATION_REQUESTS.filter(r => {
@@ -25,156 +29,214 @@ export default function VerificationsPage() {
     });
   }, [search, riskFilter]);
 
-  const riskCounts = useMemo(() => {
-    const counts = { low: 0, medium: 0, high: 0 };
-    VERIFICATION_REQUESTS.forEach(r => { counts[r.riskLevel as keyof typeof counts]++; });
-    return counts;
-  }, []);
-
   return (
-    <SidebarLayout title="Verification Queue" requiredRole="elder">
-      {/* Header */}
-      <div className="rounded-2xl p-6 mb-6" style={{ background: "linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
-        <div className="flex flex-wrap gap-4 items-start justify-between">
-          <div>
-            <p className="text-green-400 text-xs font-semibold tracking-widest mb-1">ELDER SUB-COMMITTEE</p>
-            <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Pending Verification Queue
-            </h2>
-            <p className="text-green-300 text-sm mt-1">24 requests pending · {filtered.length} shown here</p>
+    <SidebarLayout title="Elder Verification Queue" requiredRole="elder">
+      {/* Velocity + Trust Level header */}
+      <div className="grid sm:grid-cols-3 gap-4 mb-6">
+        {/* Verification Velocity */}
+        <div className="sm:col-span-2 rounded-2xl border p-5"
+          style={{ background: "white", borderColor: "#DFC5A0" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-0.5">VERIFICATION VELOCITY</p>
+              <p className="text-sm text-gray-600">Elder claims processed this week</p>
+            </div>
+            <span className="flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full"
+              style={{ background: "#D1FAE5", color: "#065F46" }}>
+              <TrendingUp size={14} /> +14%
+            </span>
           </div>
-          <div className="flex gap-3 flex-wrap">
-            {[
-              { label: "Pending", val: "24",                icon: Clock,         color: "rgba(255,255,255,0.08)" },
-              { label: "Low Risk", val: String(riskCounts.low),   icon: CheckCircle, color: "rgba(209,250,229,0.12)" },
-              { label: "Med Risk", val: String(riskCounts.medium), icon: AlertTriangle, color: "rgba(254,243,199,0.12)" },
-              { label: "High Risk", val: String(riskCounts.high),  icon: AlertTriangle, color: "rgba(254,226,226,0.12)" },
-            ].map(({ label, val, icon: Icon, color }) => (
-              <div key={label} className="rounded-xl px-4 py-2 text-center" style={{ background: color }}>
-                <p className="text-white font-bold text-lg">{val}</p>
-                <p className="text-green-300 text-xs">{label}</p>
+          <div className="flex items-end gap-3" style={{ height: "64px" }}>
+            {VELOCITY_MONTHS.map((m, i) => (
+              <div key={m} className="flex-1 flex flex-col items-center gap-1">
+                <motion.div className="w-full rounded-t"
+                  initial={{ height: 0 }}
+                  animate={{ height: `${(VELOCITY_DATA[i] / 14) * 100}%` }}
+                  transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: "easeOut" }}
+                  style={{ background: i === VELOCITY_MONTHS.length - 1 ? "#1B4332" : "#B7E4C7" }} />
+                <span className="text-xs text-gray-400">{m}</span>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Trust Level */}
+        <div className="rounded-2xl border p-5 flex flex-col items-center justify-center text-center"
+          style={{ background: "linear-gradient(135deg, #1B4332, #0D2B1E)", borderColor: "#1B4332" }}>
+          <Shield size={24} className="text-green-400 mb-2" />
+          <p className="text-xs font-semibold text-green-400 mb-1">TRUST LEVEL</p>
+          <p className="text-sm text-green-300 mb-2">Community Vouching Rate</p>
+          <p className="text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>92.4%</p>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6 items-center">
+      <div className="flex flex-wrap gap-3 mb-5 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by name, branch, gotra…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+          <input type="text" placeholder="Search pending elders…"
+            value={search} onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none"
-            style={{ borderColor: "#DFC5A0" }}
-          />
+            style={{ borderColor: "#DFC5A0" }} />
         </div>
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="px-3 py-2.5 text-sm border rounded-xl outline-none"
+          style={{ borderColor: "#DFC5A0" }}>
+          {["All Status", "Pending", "Verified", "Rejected"].map(s => <option key={s}>{s}</option>)}
+        </select>
+        <select
+          value={riskFilter}
+          onChange={e => setRiskFilter(e.target.value)}
+          className="px-3 py-2.5 text-sm border rounded-xl outline-none"
+          style={{ borderColor: "#DFC5A0" }}>
+          <option value="All">Oldest First</option>
+          <option value="high">High Risk First</option>
+          <option value="low">Low Risk First</option>
+        </select>
+      </div>
+
+      {/* Pending Claims heading */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
+          Pending Claims ({VERIFICATION_REQUESTS.length})
+        </h2>
         <div className="flex gap-2">
           {["All", "low", "medium", "high"].map(r => (
             <button key={r} onClick={() => setRiskFilter(r)}
-              className="px-4 py-2 rounded-xl text-sm font-semibold border transition-all capitalize"
+              className="px-3 py-1 rounded-full text-xs font-semibold border transition-all"
               style={riskFilter === r
                 ? { background: "#1B4332", color: "white", borderColor: "#1B4332" }
                 : { borderColor: "#DFC5A0", color: "#374151" }
               }>
-              {r === "All" ? "All" : RISK_COLORS[r].label}
+              {r === "All" ? "All Status" : RISK_COLORS[r].label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Queue list */}
-      <div className="space-y-3">
+      {/* Claims list */}
+      <div className="space-y-4">
         {filtered.map((req, i) => {
           const risk = RISK_COLORS[req.riskLevel];
-          const vouchPct = Math.round((req.vouches / req.vouchesRequired) * 100);
+          const isFirst = i === 0;
           return (
-            <motion.div
-              key={req.id}
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.06 }}
-            >
-              <Link href={`/elder/verifications/${req.id}`}
-                className="flex gap-5 items-start p-5 rounded-2xl border hover:shadow-md transition-all group"
-                style={{ background: "white", borderColor: "#DFC5A0" }}>
+            <motion.div key={req.id}
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className="rounded-2xl border overflow-hidden"
+              style={{ background: "white", borderColor: isFirst ? "#1B4332" : "#DFC5A0" }}>
 
-                {/* Photo */}
-                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
-                  <img src={req.photo} alt={req.name} className="w-full h-full object-cover" />
+              {isFirst && (
+                <div className="px-4 py-1.5 text-xs font-bold flex items-center gap-1.5"
+                  style={{ background: "#FEE2E2", color: "#DC2626" }}>
+                  <AlertTriangle size={11} /> Latest
                 </div>
+              )}
 
-                {/* Main info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-3 mb-1">
-                    <div>
-                      <h3 className="font-bold text-base" style={{ color: "#0D2B1E" }}>{req.name}</h3>
-                      <p className="text-sm text-gray-500">{req.age} yrs · {req.gender === "M" ? "Male" : "Female"} · {req.gotra} Gotra</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs px-2 py-1 rounded-full font-semibold"
+              <div className="p-5">
+                <div className="flex gap-4">
+                  {/* Photo */}
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0 border-2"
+                    style={{ borderColor: "#DFC5A0" }}>
+                    <img src={req.photo} alt={req.name} className="w-full h-full object-cover" />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div>
+                        <p className="font-bold text-base" style={{ color: "#0D2B1E" }}>{req.name}</p>
+                        <p className="text-sm text-gray-500">Age: {req.age ?? "–"}</p>
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full font-semibold shrink-0"
                         style={{ background: risk.bg, color: risk.text }}>
                         {risk.label}
                       </span>
-                      <span className="text-xs text-gray-400">{req.submittedOn}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs mb-2" style={{ color: "#1B4332" }}>
-                    {req.claimingFrom} · Claiming: {req.claimingAncestor}
-                  </p>
-
-                  {/* Vouch progress */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1">
-                      <div className="flex justify-between text-xs mb-0.5">
-                        <span className="text-gray-500">Vouches</span>
-                        <span className="font-semibold" style={{ color: "#1B4332" }}>{req.vouches}/{req.vouchesRequired}</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-100 rounded-full">
-                        <div className="h-full rounded-full transition-all"
-                          style={{ width: `${vouchPct}%`, background: vouchPct === 100 ? "#1B4332" : "#52B788" }} />
-                      </div>
                     </div>
 
-                    <div className="flex gap-1.5 shrink-0">
-                      {req.hasDocument && (
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#D1FAE5", color: "#065F46" }}>📄 Docs</span>
-                      )}
-                      {req.hasPhoto && (
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#EDE9FE", color: "#5B21B6" }}>📷 Photo</span>
-                      )}
-                      {req.aadhaarStatus === "Verified" && (
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#D1FAE5", color: "#065F46" }}>✓ Aadhaar</span>
-                      )}
-                      {req.aadhaarStatus === "Mismatch" && (
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#FEE2E2", color: "#DC2626" }}>⚠ Aadhaar</span>
-                      )}
+                    <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                      <div>
+                        <p className="text-gray-400">Lineage Node</p>
+                        <p className="font-semibold text-gray-700">{req.claimingFrom}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">ID Status</p>
+                        <p className="font-semibold"
+                          style={{ color: req.aadhaarStatus === "Verified" ? "#065F46" : "#D97706" }}>
+                          {req.aadhaarStatus === "Verified" ? "✓ Verified" : "⚠ " + req.aadhaarStatus}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Vouching</p>
+                        <p className="font-semibold text-gray-700">{req.vouches} Peer Vouches</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="text-gray-300 group-hover:text-gray-500 transition-colors text-2xl shrink-0">›</div>
-              </Link>
+                {/* Documents row */}
+                {req.documents && req.documents.length > 0 && (
+                  <div className="mt-3 pt-3 border-t" style={{ borderColor: "#F3F4F6" }}>
+                    <p className="text-xs text-gray-400 mb-2 font-semibold">SUPPORTING DOCUMENTS</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {req.documents.map((doc: string) => (
+                        <div key={doc} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border"
+                          style={{ borderColor: "#DFC5A0", background: "#F7F0E8" }}>
+                          {doc.match(/\.(jpg|jpeg|png)/i) ? (
+                            <Image size={12} style={{ color: "#8B5E3C" }} />
+                          ) : (
+                            <FileText size={12} style={{ color: "#8B5E3C" }} />
+                          )}
+                          <span className="text-gray-700">{doc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="mt-3 flex gap-2 flex-wrap">
+                  <button className="px-4 py-2 text-xs rounded-xl font-semibold border hover:bg-gray-50 transition-colors"
+                    style={{ borderColor: "#DFC5A0", color: "#374151" }}>
+                    Contact Applicant
+                  </button>
+                  <button className="px-4 py-2 text-xs rounded-xl font-semibold border hover:bg-gray-50 transition-colors"
+                    style={{ borderColor: "#DFC5A0", color: "#374151" }}>
+                    Request More Info
+                  </button>
+                  <Link href={`/elder/verifications/${req.id}`}
+                    className="ml-auto flex items-center gap-1.5 px-4 py-2 text-xs rounded-xl font-bold text-white transition-all hover:-translate-y-0.5"
+                    style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+                    Approve Membership <ChevronRight size={13} />
+                  </Link>
+                </div>
+              </div>
             </motion.div>
           );
         })}
       </div>
 
+      {/* Pagination */}
+      <div className="flex items-center justify-center gap-2 mt-6">
+        {[1, 2, 3, "…", 12].map((p, i) => (
+          <button key={i}
+            className="w-8 h-8 rounded-lg text-sm font-semibold border transition-all"
+            style={p === 1
+              ? { background: "#1B4332", color: "white", borderColor: "#1B4332" }
+              : { borderColor: "#DFC5A0", color: "#374151" }
+            }>
+            {p}
+          </button>
+        ))}
+      </div>
+
       {filtered.length === 0 && (
         <div className="text-center py-16 text-gray-400">
-          <Filter size={32} className="mx-auto mb-3" />
+          <Clock size={32} className="mx-auto mb-3" />
           <p className="font-semibold">No requests match your filter</p>
         </div>
       )}
-
-      <div className="mt-6 text-sm text-gray-400 text-center">
-        Showing {filtered.length} of 24 pending verifications ·{" "}
-        <Link href="/elder" className="font-semibold hover:underline" style={{ color: "#1B4332" }}>← Back to Overview</Link>
-      </div>
     </SidebarLayout>
   );
 }
