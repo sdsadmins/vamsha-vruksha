@@ -1,11 +1,11 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, Clock, Users, Route, Navigation, Share2,
-  CheckCircle, Plus, ChevronDown, ChevronUp, Info
+  CheckCircle, Plus, ChevronDown, ChevronUp, Info,
 } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { INVITATION_FAMILIES } from "@/lib/data";
@@ -63,6 +63,10 @@ export default function InvitationsPage() {
   const [routeOrder, setRouteOrder] = useState<string[]>(["if7", "if8", "if1"]);
   const [expandedStop, setExpandedStop] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
+  const [routeGeometry, setRouteGeometry] = useState<number[][]>([]);
+  const [realRouteKm, setRealRouteKm] = useState<string | null>(null);
+  const [realRouteMin, setRealRouteMin] = useState<number | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
 
   const toggle = useCallback((id: string) => {
     setOptimized(false);
@@ -84,7 +88,29 @@ export default function InvitationsPage() {
     [routeOrder]
   );
 
+  // Fetch real road route from OSRM whenever orderedFamilies changes
+  useEffect(() => {
+    if (orderedFamilies.length < 2) { setRouteGeometry([]); setRealRouteKm(null); setRealRouteMin(null); return; }
+    const coords = orderedFamilies.map(f => `${f.lng},${f.lat}`).join(";");
+    const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+    setRouteLoading(true);
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        if (data.code === "Ok" && data.routes?.[0]) {
+          const route = data.routes[0];
+          setRouteGeometry(route.geometry.coordinates as number[][]);
+          setRealRouteKm((route.distance / 1000).toFixed(1));
+          const visitMin = orderedFamilies.reduce((s, f) => s + (f.estimatedVisit === "—" ? 0 : parseInt(f.estimatedVisit)), 0);
+          setRealRouteMin(Math.round(route.duration / 60) + visitMin);
+        }
+      })
+      .catch(() => { /* OSRM unavailable, fall back to estimates */ })
+      .finally(() => setRouteLoading(false));
+  }, [orderedFamilies]);
+
   const { totalKm, totalMin } = useMemo(() => {
+    if (realRouteKm && realRouteMin) return { totalKm: realRouteKm, totalMin: realRouteMin };
     let km = 0;
     for (let i = 1; i < orderedFamilies.length; i++) {
       km += haversineKm(
@@ -93,11 +119,12 @@ export default function InvitationsPage() {
       );
     }
     const visitMin = orderedFamilies.reduce((s, f) => s + (f.estimatedVisit === "—" ? 0 : parseInt(f.estimatedVisit)), 0);
-    const driveMin = Math.round(km * 3.5); // ~3.5 min per km in city
+    const driveMin = Math.round(km * 3.5);
     return { totalKm: km.toFixed(1), totalMin: visitMin + driveMin };
-  }, [orderedFamilies]);
+  }, [orderedFamilies, realRouteKm, realRouteMin]);
 
   const mapFamilies = orderedFamilies.map((f, i) => ({ ...f, stopNumber: i + 1 }));
+  const allMapFamilies = INVITATION_FAMILIES.map(f => ({ ...f, stopNumber: routeOrder.indexOf(f.id) + 1 }));
 
   // Estimated arrival times starting 9:00 AM
   const arrivals = useMemo(() => {
@@ -154,8 +181,8 @@ export default function InvitationsPage() {
             <div className="grid grid-cols-3 gap-2">
               {[
                 { icon: Users,    label: "Families",     val: selected.length.toString() },
-                { icon: Route,    label: "Distance",     val: `${totalKm} km` },
-                { icon: Clock,    label: "Est. Time",    val: `${Math.floor(Number(totalMin) / 60)}h ${Number(totalMin) % 60}m` },
+                { icon: Route, label: "Distance", val: `${totalKm} km` },
+                { icon: Clock, label: "Est. Time", val: `${Math.floor(Number(totalMin) / 60)}h ${Number(totalMin) % 60}m` },
               ].map(({ icon: Icon, label, val }) => (
                 <div key={label} className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,0.08)" }}>
                   <Icon size={14} className="mx-auto mb-1 text-green-400" />
@@ -234,13 +261,27 @@ export default function InvitationsPage() {
         {/* ── RIGHT: Map + Itinerary ── */}
         <div className="lg:col-span-3 flex flex-col gap-4">
           {/* Map */}
-          <div className="rounded-2xl overflow-hidden" style={{ height: "420px", border: "1px solid #DFC5A0" }}>
+          <div className="rounded-2xl overflow-hidden relative" style={{ height: "420px", border: "1px solid #DFC5A0" }}>
             <RouteMap
               families={mapFamilies}
               selected={routeOrder}
               center={[12.972, 77.594]}
               zoom={12}
+              routeGeometry={routeGeometry}
             />
+            {routeLoading && (
+              <div className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                style={{ background:"rgba(27,67,50,0.9)", color:"white" }}>
+                <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Calculating road route…
+              </div>
+            )}
+            {!routeLoading && realRouteKm && (
+              <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                style={{ background:"rgba(27,67,50,0.88)", color:"white" }}>
+                🛣 Real road route · {realRouteKm} km
+              </div>
+            )}
           </div>
 
           {/* Journey itinerary */}
