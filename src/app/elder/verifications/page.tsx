@@ -1,10 +1,15 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Search, CheckCircle, AlertTriangle, Clock, Shield, TrendingUp, FileText, Image, ChevronRight } from "lucide-react";
+import { Search, CheckCircle, AlertTriangle, Clock, Shield, TrendingUp, ChevronRight, UserCheck, UserX, Image as ImageIcon, FileText } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { VERIFICATION_REQUESTS } from "@/lib/data";
+
+interface PendingUser {
+  id: string; name: string; phone: string; gotra: string;
+  native: string; role: string; createdAt: string;
+}
 
 const RISK_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   low:    { bg: "#D1FAE5", text: "#065F46", label: "Low Risk"  },
@@ -16,10 +21,35 @@ const VELOCITY_MONTHS = ["W1", "W2", "W3", "W4"];
 const VELOCITY_DATA   = [6, 9, 11, 14];
 
 export default function VerificationsPage() {
-  const [search, setSearch]       = useState("");
+  const [search, setSearch]         = useState("");
   const [riskFilter, setRiskFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All Status");
+  const [dbPending, setDbPending]   = useState<PendingUser[]>([]);
+  const [approving, setApproving]   = useState<string | null>(null);
+  const [acted, setActed]           = useState<Record<string, "approved"|"rejected">>({});
 
+  useEffect(() => {
+    fetch("/api/verifications")
+      .then(r => r.ok ? r.json() : [])
+      .then(setDbPending)
+      .catch(() => {});
+  }, []);
+
+  const handleAction = async (id: string, action: "approve"|"reject") => {
+    setApproving(id);
+    try {
+      await fetch("/api/verifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action }),
+      });
+      setActed(prev => ({ ...prev, [id]: action === "approve" ? "approved" : "rejected" }));
+      setDbPending(prev => prev.filter(u => u.id !== id));
+    } catch { /* ignore */ }
+    setApproving(null);
+  };
+
+  // Static fallback filtered
   const filtered = useMemo(() => {
     return VERIFICATION_REQUESTS.filter(r => {
       const matchRisk = riskFilter === "All" || r.riskLevel === riskFilter;
@@ -96,6 +126,53 @@ export default function VerificationsPage() {
           <option value="low">Low Risk First</option>
         </select>
       </div>
+
+      {/* ── DB Real Pending Users ── */}
+      {dbPending.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2"
+            style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
+            New Registrations Awaiting Approval ({dbPending.length})
+          </h2>
+          <div className="space-y-3">
+            {dbPending.filter(u => {
+              const q = search.toLowerCase();
+              return !q || u.name.toLowerCase().includes(q) || u.gotra.toLowerCase().includes(q) || u.native.toLowerCase().includes(q);
+            }).map((u, i) => (
+              <motion.div key={u.id} initial={{ opacity:0,y:8 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.04 }}
+                className="rounded-2xl border p-4 flex items-center gap-4"
+                style={{ background:"white", borderColor:"#1B4332" }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl shrink-0"
+                  style={{ background:"linear-gradient(135deg,#1B4332,#2D6A4F)", color:"white" }}>
+                  {u.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold" style={{ color:"#0D2B1E" }}>{u.name}</p>
+                  <p className="text-sm text-gray-500">{u.phone} · {u.gotra} Gotra · {u.native}</p>
+                  <span className="text-xs px-2 py-0.5 rounded-full mt-1 inline-block"
+                    style={{ background:"#FEF3C7", color:"#D97706" }}>
+                    {u.role === "elder" ? "Elder Application" : "Member Registration"}
+                  </span>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => handleAction(u.id, "approve")} disabled={!!approving}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs rounded-xl font-bold text-white disabled:opacity-50"
+                    style={{ background:"linear-gradient(135deg,#1B4332,#2D6A4F)" }}>
+                    {approving === u.id ? <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" /> : <UserCheck size={13} />}
+                    Approve
+                  </button>
+                  <button onClick={() => handleAction(u.id, "reject")} disabled={!!approving}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs rounded-xl font-bold border disabled:opacity-50"
+                    style={{ borderColor:"#FCA5A5", color:"#DC2626" }}>
+                    <UserX size={13} /> Reject
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Pending Claims heading */}
       <div className="flex items-center justify-between mb-4">
@@ -184,7 +261,7 @@ export default function VerificationsPage() {
                         <div key={doc} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border"
                           style={{ borderColor: "#DFC5A0", background: "#F7F0E8" }}>
                           {doc.match(/\.(jpg|jpeg|png)/i) ? (
-                            <Image size={12} style={{ color: "#8B5E3C" }} />
+                            <ImageIcon size={12} style={{ color: "#8B5E3C" }} />
                           ) : (
                             <FileText size={12} style={{ color: "#8B5E3C" }} />
                           )}

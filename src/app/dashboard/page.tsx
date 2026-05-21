@@ -7,6 +7,16 @@ import SidebarLayout from "@/components/SidebarLayout";
 import { getUser, type VVUser } from "@/lib/auth";
 import { DASHBOARD_ACTIVITY, WELFARE_CAMPAIGNS, MATRIMONIAL_CANDIDATES } from "@/lib/data";
 
+interface DbStats {
+  totalMembers: number; pendingVerifications: number;
+  familyMembers: number; matrimonialProfiles: number;
+  totalDonationAmount: number; activeTrees: number;
+}
+interface ActivityItem {
+  id: string; type: string; user: string;
+  action: string; detail: string; time: string; photo: string;
+}
+
 function StatCard({
   icon: Icon,
   value,
@@ -62,11 +72,11 @@ function StatCard({
   );
 }
 
-const STAT_DATA = [
-  { icon: Users,    value: "1,428", label: "Total Members",          sub: "+12 joined this week",        color: "#1B4332" },
-  { icon: TreePine, value: "86",    label: "Active Trees",           sub: "Global connections mapped",   color: "#2D6A4F" },
-  { icon: Shield,   value: "24",    label: "Pending Verifications",  sub: "Awaiting elder approval",     color: "#8B5E3C" },
-  { icon: Calendar, value: "3",     label: "Upcoming Events",        sub: "Next: Annual Samaja Function",color: "#C4823A" },
+const FALLBACK_STATS = [
+  { icon: Users,    value: "—", label: "Total Members",         sub: "Loading…",                    color: "#1B4332" },
+  { icon: TreePine, value: "—", label: "Active Trees",          sub: "Loading…",                    color: "#2D6A4F" },
+  { icon: Shield,   value: "—", label: "Pending Verifications", sub: "Loading…",                    color: "#8B5E3C" },
+  { icon: Calendar, value: "3", label: "Upcoming Events",       sub: "Next: Annual Samaja Function", color: "#C4823A" },
 ];
 
 const QUICK_ACTIONS = [
@@ -83,12 +93,30 @@ const ACTIVITY_ICONS: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<VVUser | null>(null);
+  const [user, setUser]       = useState<VVUser | null>(null);
+  const [dbStats, setDbStats] = useState<DbStats | null>(null);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
-    const u = getUser();
-    setUser(u);
+    setUser(getUser());
+    // Fetch real stats and activity in parallel
+    Promise.all([
+      fetch("/api/stats").then(r => r.ok ? r.json() : null),
+      fetch("/api/activity").then(r => r.ok ? r.json() : []),
+    ]).then(([stats, acts]) => {
+      if (stats) setDbStats(stats);
+      if (acts?.length) setActivity(acts);
+    }).catch(() => {});
   }, []);
+
+  const statData = dbStats ? [
+    { icon: Users,    value: dbStats.totalMembers.toLocaleString(), label: "Total Members",         sub: `${dbStats.familyMembers} family records`,      color: "#1B4332" },
+    { icon: TreePine, value: String(dbStats.activeTrees || "—"),    label: "Active Trees",          sub: "Lineage connections mapped",                   color: "#2D6A4F" },
+    { icon: Shield,   value: String(dbStats.pendingVerifications),  label: "Pending Verifications", sub: "Awaiting elder approval",                      color: "#8B5E3C" },
+    { icon: Calendar, value: "3",                                   label: "Upcoming Events",       sub: "Next: Annual Samaja Function",                 color: "#C4823A" },
+  ] : FALLBACK_STATS;
+
+  const feedItems = activity.length ? activity : DASHBOARD_ACTIVITY;
 
   return (
     <SidebarLayout title="Dashboard">
@@ -182,7 +210,7 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        {STAT_DATA.map((s, i) => (
+        {statData.map((s, i) => (
           <StatCard key={s.label} {...s} delay={0.1 + i * 0.1} />
         ))}
       </div>
@@ -360,7 +388,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="space-y-3">
-            {DASHBOARD_ACTIVITY.map((item, i) => (
+            {feedItems.map((item, i) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, x: 12 }}
@@ -369,25 +397,25 @@ export default function DashboardPage() {
                 className="flex items-start gap-3 p-4 rounded-2xl border"
                 style={{ background: "white", border: "1px solid #DFC5A0" }}
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-200">
-                  <img src={item.photo} alt={item.user} className="w-full h-full object-cover" />
+                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-200 flex items-center justify-center"
+                  style={{ background:"#F0FBF4" }}>
+                  {item.photo
+                    ? <img src={item.photo} alt={item.user} className="w-full h-full object-cover" />
+                    : <span className="text-sm font-bold" style={{ color:"#1B4332" }}>{item.user.charAt(0)}</span>}
                 </div>
                 <div className="flex-1">
                   <p className="text-sm">
                     <span className="font-semibold">{item.user}</span>{" "}
                     <span className="text-gray-600">{item.action}</span>{" "}
                     {item.detail && (
-                      <span
-                        className="font-semibold"
-                        style={{ color: "#1B4332" }}
-                      >
+                      <span className="font-semibold" style={{ color:"#1B4332" }}>
                         {item.detail}
                       </span>
                     )}
                   </p>
                   <p className="text-xs text-gray-400 mt-1">{item.time}</p>
                 </div>
-                <span className="text-lg">{ACTIVITY_ICONS[item.type]}</span>
+                <span className="text-lg">{ACTIVITY_ICONS[item.type] ?? "🌳"}</span>
               </motion.div>
             ))}
           </div>

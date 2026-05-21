@@ -1,9 +1,10 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { UserPlus, Edit2, MapPin, ChevronRight, Star, TreePine, Calendar, Briefcase } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { UserPlus, Edit2, MapPin, ChevronRight, Star, TreePine, Calendar, Briefcase, X, CheckCircle } from "lucide-react";
+import { getUser, saveUser } from "@/lib/auth";
 import SidebarLayout from "@/components/SidebarLayout";
 import { FAMILY_MEMBERS } from "@/lib/data";
 import { AVATAR_SVGS } from "@/lib/avatarSvgs";
@@ -29,6 +30,7 @@ function isMongoId(id: string) {
 
 export default function ProfilePage() {
   const { id } = useParams();
+  const router = useRouter();
   const memberId = Array.isArray(id) ? id[0] : id ?? "";
 
   // DB member state
@@ -36,6 +38,12 @@ export default function ProfilePage() {
   const [dbParent, setDbParent]       = useState<DbMember | null>(null);
   const [dbChildren, setDbChildren]   = useState<DbMember[]>([]);
   const [dbLoading, setDbLoading]     = useState(isMongoId(memberId));
+
+  // Edit modal state (for static / current-user profile)
+  const [showEdit, setShowEdit]       = useState(false);
+  const [editSaving, setEditSaving]   = useState(false);
+  const [editDone, setEditDone]       = useState(false);
+  const [editForm, setEditForm]       = useState({ name:"", gotra:"", native:"", occupation:"" });
 
   useEffect(() => {
     if (!isMongoId(memberId)) return;
@@ -54,6 +62,38 @@ export default function ProfilePage() {
       setDbLoading(false);
     }).catch(() => setDbLoading(false));
   }, [memberId]);
+
+  // Pre-fill edit form from current user in localStorage
+  const openEdit = () => {
+    const user = getUser();
+    setEditForm({
+      name: user?.name ?? "",
+      gotra: user?.gotra ?? "",
+      native: user?.native ?? "",
+      occupation: "",
+    });
+    setEditDone(false);
+    setShowEdit(true);
+  };
+
+  const handleEditSave = async () => {
+    setEditSaving(true);
+    const user = getUser();
+    if (user) {
+      try {
+        await fetch("/api/auth/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: user.phone, gotra: editForm.gotra, native: editForm.native, occupation: editForm.occupation }),
+        });
+        // Update localStorage too
+        saveUser({ ...user, gotra: editForm.gotra, native: editForm.native });
+      } catch { /* ignore */ }
+    }
+    setEditSaving(false);
+    setEditDone(true);
+    setTimeout(() => setShowEdit(false), 1400);
+  };
 
   // Static member fallback
   const staticMember = FAMILY_MEMBERS.find((m) => m.id === memberId);
@@ -295,11 +335,13 @@ export default function ProfilePage() {
                 ))}
               </div>
               <div className="flex gap-3 mb-3">
-                <button className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 border transition-all hover:-translate-y-0.5"
+                <button onClick={() => router.push("/family-tree")}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 border transition-all hover:-translate-y-0.5"
                   style={{ borderColor:"#1B4332", color:"#1B4332" }}>
                   <UserPlus size={15} /> Add Relative
                 </button>
-                <button className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 text-white transition-all hover:-translate-y-0.5"
+                <button onClick={openEdit}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 text-white transition-all hover:-translate-y-0.5"
                   style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
                   <Edit2 size={15} /> Edit Profile
                 </button>
@@ -397,6 +439,59 @@ export default function ProfilePage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <AnimatePresence>
+        {showEdit && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor:"rgba(0,0,0,0.55)" }}
+            onClick={() => setShowEdit(false)}>
+            <motion.div initial={{ scale:0.95,y:20 }} animate={{ scale:1,y:0 }} exit={{ scale:0.95,y:20 }}
+              className="w-full max-w-md rounded-2xl overflow-hidden"
+              style={{ background:"white" }}
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-5 border-b"
+                style={{ borderColor:"#DFC5A0", background:"linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
+                <h2 className="text-lg font-bold text-white" style={{ fontFamily:"'Playfair Display', serif" }}>Edit Profile</h2>
+                <button onClick={() => setShowEdit(false)} className="p-1.5 rounded-xl hover:bg-white/10">
+                  <X size={16} className="text-white" />
+                </button>
+              </div>
+              {editDone ? (
+                <div className="p-10 text-center">
+                  <CheckCircle size={40} className="mx-auto mb-3" style={{ color:"#1B4332" }} />
+                  <p className="font-bold text-lg" style={{ color:"#0D2B1E" }}>Profile Updated!</p>
+                </div>
+              ) : (
+                <div className="p-5 space-y-4">
+                  {[
+                    { label:"Gotra",         key:"gotra",      placeholder:"e.g. Kashyap" },
+                    { label:"Native Place",  key:"native",     placeholder:"e.g. Kundapura, Karnataka" },
+                    { label:"Occupation",    key:"occupation", placeholder:"e.g. Goldsmith, Engineer" },
+                  ].map(({label,key,placeholder}) => (
+                    <div key={key}>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>{label}</label>
+                      <input type="text" placeholder={placeholder}
+                        value={editForm[key as keyof typeof editForm]}
+                        onChange={e => setEditForm(p=>({...p,[key]:e.target.value}))}
+                        className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
+                        style={{ borderColor:"#DFC5A0" }} />
+                    </div>
+                  ))}
+                  <button onClick={handleEditSave} disabled={editSaving}
+                    className="w-full py-3.5 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+                    style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+                    {editSaving
+                      ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
+                      : "Save Changes"}
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </SidebarLayout>
   );
 }

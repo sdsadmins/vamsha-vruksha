@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Upload } from "lucide-react";
+import { getUser, saveUser } from "@/lib/auth";
 
 export default function HeritagePage() {
   const router = useRouter();
@@ -9,6 +10,15 @@ export default function HeritagePage() {
   const [native, setNative] = useState("Udupi, Karnataka");
   const [bio, setBio] = useState("");
   const [matrimonial, setMatrimonial] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const u = getUser();
+    if (u) {
+      if (u.gotra) setGotra(u.gotra);
+      if (u.native) setNative(u.native);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen" style={{backgroundColor: "#FAF7F2"}}>
@@ -98,11 +108,27 @@ export default function HeritagePage() {
         <div className="flex gap-3 mt-8 max-w-2xl">
           <button onClick={() => router.push("/onboarding/lineage")} className="px-6 py-3 rounded-xl border text-sm" style={{borderColor: "#E5DDD0"}}>← Back to Lineage</button>
           <button
-            onClick={() => router.push("/dashboard")}
-            className="flex-1 py-4 text-white rounded-xl font-semibold"
+            disabled={saving}
+            onClick={async () => {
+              setSaving(true);
+              try {
+                const u = getUser();
+                if (u?.phone) {
+                  await fetch("/api/auth/profile", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone: u.phone, gotra, native, bio, matrimonialOptIn: matrimonial }),
+                  });
+                  saveUser({ ...u, gotra, native });
+                }
+              } catch { /* ignore */ }
+              setSaving(false);
+              router.push("/dashboard");
+            }}
+            className="flex-1 py-4 text-white rounded-xl font-semibold disabled:opacity-60"
             style={{backgroundColor: "#1B4332"}}
           >
-            Complete Profile ✓
+            {saving ? "Saving…" : "Complete Profile ✓"}
           </button>
         </div>
       </div>

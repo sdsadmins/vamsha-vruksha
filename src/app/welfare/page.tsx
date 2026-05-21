@@ -24,12 +24,25 @@ export default function WelfarePage() {
     setUser(u);
   }, [router]);
 
-  const handleDonate = (id: string) => {
+  const handleDonate = async (id: string) => {
     setDonating(id);
-    setTimeout(() => {
-      setDonating(null);
-      setDonated((d) => ({ ...d, [id]: true }));
-    }, 900);
+    try {
+      await fetch("/api/donations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaignId: id,
+          campaignTitle: "General Welfare Fund",
+          amount: parseInt(amount) || 500,
+          donorName: user?.name ?? "Anonymous",
+          donorPhone: user?.phone ?? "",
+          payMethod: "upi",
+          donationType: "onetime",
+        }),
+      });
+    } catch { /* ignore */ }
+    setDonating(null);
+    setDonated((d) => ({ ...d, [id]: true }));
   };
 
   return (

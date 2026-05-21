@@ -1,27 +1,196 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Share2, Download, Heart, CheckCircle, Star, MapPin, Briefcase, Users, GraduationCap } from "lucide-react";
+import { ArrowLeft, Share2, Download, Heart, CheckCircle, Star, MapPin, Briefcase, Users, GraduationCap, Clock } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { MATRIMONIAL_CANDIDATES } from "@/lib/data";
+import { getUser } from "@/lib/auth";
+
+interface DbProfile {
+  _id: string; name: string; gender: string; age?: number; gotra: string;
+  location: string; education: string; company: string; phone: string;
+  verified: boolean; photo: string; familyType: string; height: string; status: string;
+}
+
+function isMongoId(s: string) { return /^[a-f0-9]{24}$/i.test(s); }
 
 export default function CandidateDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [proposed, setProposed] = useState(false);
-  const candidate = MATRIMONIAL_CANDIDATES.find(c => c.id === id);
+  const rawId = Array.isArray(id) ? id[0] : id ?? "";
 
-  if (!candidate) return (
+  const [proposed, setProposed]     = useState(false);
+  const [saving, setSaving]         = useState(false);
+  const [dbProfile, setDbProfile]   = useState<DbProfile | null>(null);
+  const [dbLoading, setDbLoading]   = useState(isMongoId(rawId));
+
+  useEffect(() => {
+    if (!isMongoId(rawId)) return;
+    fetch("/api/matrimonial")
+      .then(r => r.ok ? r.json() : [])
+      .then((all: DbProfile[]) => {
+        const found = all.find(p => p._id === rawId);
+        setDbProfile(found ?? null);
+        setDbLoading(false);
+      })
+      .catch(() => setDbLoading(false));
+  }, [rawId]);
+
+  const handlePropose = async () => {
+    setSaving(true);
+    const user = getUser();
+    try {
+      await fetch("/api/interests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          candidateId: rawId,
+          candidateName: (dbProfile?.name ?? staticCandidate?.name) ?? "",
+          fromPhone: user?.phone ?? "",
+          fromName: user?.name ?? "Anonymous",
+        }),
+      });
+    } catch { /* ignore — still show modal */ }
+    setSaving(false);
+    setProposed(true);
+  };
+
+  if (dbLoading) return (
     <SidebarLayout title="Candidate Profile">
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-gray-400">Profile not found</p>
-        <button onClick={() => router.push("/matrimonial")} className="text-sm font-semibold" style={{ color: "#1B4332" }}>
-          ← Back to Matrimonial Hub
-        </button>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor:"#DFC5A0", borderTopColor:"#1B4332" }} />
       </div>
     </SidebarLayout>
   );
+
+  // ── DB profile view ──
+  if (isMongoId(rawId) && dbProfile) {
+    return (
+      <SidebarLayout title="Candidate Profile">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={() => router.push("/matrimonial")}
+            className="flex items-center gap-2 text-sm font-medium hover:underline" style={{ color:"#1B4332" }}>
+            <ArrowLeft size={15} /> Back to Matrimonial Hub
+          </button>
+        </div>
+        <div className="grid lg:grid-cols-3 gap-6">
+          <motion.div initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} className="lg:col-span-1">
+            <div className="rounded-3xl overflow-hidden border sticky top-4" style={{ background:"white", borderColor:"#DFC5A0" }}>
+              <div className="relative" style={{ height:"300px", background:"linear-gradient(160deg, #0D2B1E, #1B4332)" }}>
+                {dbProfile.photo
+                  ? <img src={dbProfile.photo} alt={dbProfile.name} className="w-full h-full object-cover object-top" />
+                  : <div className="w-full h-full flex items-center justify-center text-7xl">{dbProfile.gender === "Bride" ? "👩" : "👨"}</div>}
+                <div className="absolute inset-0" style={{ background:"linear-gradient(to bottom, transparent 50%, rgba(13,43,30,0.92) 100%)" }} />
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
+                    style={{ background:"rgba(254,243,199,0.95)", color:"#D97706" }}>
+                    ⏳ Pending Review
+                  </span>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
+                    style={{ background:dbProfile.gender==="Bride"?"rgba(253,232,246,0.95)":"rgba(232,240,253,0.95)", color:dbProfile.gender==="Bride"?"#9D174D":"#1E40AF" }}>
+                    {dbProfile.gender}
+                  </span>
+                </div>
+                <div className="absolute bottom-4 left-5 right-5">
+                  <h1 className="text-2xl font-bold text-white" style={{ fontFamily:"'Playfair Display', serif" }}>{dbProfile.name}</h1>
+                  <p className="text-green-300 text-sm">{dbProfile.age ? `${dbProfile.age} yrs` : ""} · {dbProfile.height || "—"}</p>
+                </div>
+              </div>
+              <div className="p-5 space-y-4">
+                {[
+                  { icon:MapPin,        label:"Location",  value:dbProfile.location || "—" },
+                  { icon:Briefcase,     label:"Works at",  value:dbProfile.company  || "Details pending" },
+                  { icon:GraduationCap, label:"Education", value:dbProfile.education || "Details pending" },
+                  { icon:Users,         label:"Family",    value:`${dbProfile.familyType || "Nuclear"} family · ${dbProfile.gotra} gotra` },
+                ].map(({ icon:Icon, label, value }) => (
+                  <div key={label} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background:"#F0FBF4" }}>
+                      <Icon size={14} style={{ color:"#1B4332" }} />
+                    </div>
+                    <div><p className="text-xs text-gray-400">{label}</p><p className="text-sm font-semibold" style={{ color:"#0D2B1E" }}>{value}</p></div>
+                  </div>
+                ))}
+                <div className="pt-2">
+                  <button onClick={handlePropose} disabled={saving || proposed}
+                    className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-60"
+                    style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)", boxShadow:"0 4px 16px rgba(27,67,50,0.3)" }}>
+                    {saving ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending…</>
+                      : proposed ? "✓ Interest Sent" : <><Heart size={16} /> Initiate Interest via Elder</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+          <motion.div initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }} className="lg:col-span-2 space-y-5">
+            <div className="rounded-2xl border p-6" style={{ background:"white", borderColor:"#DFC5A0" }}>
+              <div className="flex items-center gap-3 mb-4">
+                <Clock size={16} style={{ color:"#D97706" }} />
+                <p className="font-semibold text-sm" style={{ color:"#D97706" }}>Profile Pending Elder Review</p>
+              </div>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                This profile was recently submitted and is awaiting Elder committee approval. Full details (astro, family background, partner expectations) will be visible once the Elder panel verifies and approves the listing.
+              </p>
+            </div>
+            <div className="rounded-2xl border p-5 grid grid-cols-2 gap-4" style={{ background:"white", borderColor:"#DFC5A0" }}>
+              {[
+                { label:"Gotra",        value:dbProfile.gotra },
+                { label:"Location",     value:dbProfile.location },
+                { label:"Education",    value:dbProfile.education || "—" },
+                { label:"Family Type",  value:dbProfile.familyType || "Nuclear" },
+              ].map(({label,value}) => (
+                <div key={label} className="rounded-xl p-3" style={{ background:"#F7F0E8" }}>
+                  <p className="text-xs text-gray-400">{label}</p>
+                  <p className="font-semibold text-sm mt-0.5" style={{ color:"#0D2B1E" }}>{value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-2xl p-5 flex items-start gap-4" style={{ background:"linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background:"linear-gradient(135deg, #8B5E3C, #C4823A)" }}>
+                <Users size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-white font-semibold mb-1" style={{ fontFamily:"'Playfair Display', serif" }}>Elder-Mediated Introduction</p>
+                <p className="text-green-200 text-xs leading-relaxed">All introductions are managed by the Elder sub-committee. Once you express interest, the committee will review both profiles and facilitate a formal introduction.</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+        <AnimatePresence>
+          {proposed && (
+            <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background:"rgba(0,0,0,0.55)" }}
+              initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} onClick={() => setProposed(false)}>
+              <motion.div initial={{ scale:0.9,opacity:0 }} animate={{ scale:1,opacity:1 }} exit={{ scale:0.9,opacity:0 }}
+                className="rounded-3xl p-10 text-center max-w-sm w-full" style={{ background:"white" }} onClick={e => e.stopPropagation()}>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background:"#D1FAE5" }}>
+                  <CheckCircle size={32} style={{ color:"#1B4332" }} />
+                </div>
+                <h3 className="text-xl font-bold mb-2" style={{ fontFamily:"'Playfair Display', serif" }}>Interest Initiated!</h3>
+                <p className="text-gray-500 text-sm mb-6">The Elder sub-committee will review both profiles and reach out within 3 working days.</p>
+                <button onClick={() => { setProposed(false); router.push("/matrimonial"); }}
+                  className="w-full py-3 text-white rounded-xl font-semibold" style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+                  Back to Matrimonial Hub
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </SidebarLayout>
+    );
+  }
+
+  // ── Static candidate not found (unknown ID) ──
+  const staticCandidate = MATRIMONIAL_CANDIDATES.find(c => c.id === rawId);
+  if (!staticCandidate) return (
+    <SidebarLayout title="Candidate Profile">
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <p className="text-gray-400">Profile not found</p>
+        <button onClick={() => router.push("/matrimonial")} className="text-sm font-semibold" style={{ color:"#1B4332" }}>← Back to Matrimonial Hub</button>
+      </div>
+    </SidebarLayout>
+  );
+
+  const candidate = staticCandidate;
 
   return (
     <SidebarLayout title="Candidate Profile">
@@ -107,11 +276,13 @@ export default function CandidateDetailPage() {
 
               <div className="pt-2 space-y-2">
                 <button
-                  onClick={() => setProposed(true)}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+                  onClick={handlePropose}
+                  disabled={saving || proposed}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 disabled:opacity-60"
                   style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)", boxShadow: "0 4px 16px rgba(27,67,50,0.3)" }}
                 >
-                  <Heart size={16} /> Initiate Interest via Elder
+                  {saving ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending…</>
+                    : proposed ? "✓ Interest Sent" : <><Heart size={16} /> Initiate Interest via Elder</>}
                 </button>
                 <button className="w-full py-3 rounded-xl font-semibold text-sm border flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
                   style={{ borderColor: "#DFC5A0", color: "#1B4332" }}>

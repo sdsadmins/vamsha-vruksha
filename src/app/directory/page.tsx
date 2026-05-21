@@ -1,11 +1,15 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Search, MapPin, Users, Navigation, Filter } from "lucide-react";
+import { Search, MapPin, Users, Navigation, Filter, UserPlus } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { COMMUNITY_MEMBERS } from "@/lib/data";
+
+interface DbUser {
+  id: string; name: string; phone: string; gotra: string; native: string; role: string;
+}
 
 const MEMBER_COORDS: Record<string, { lat: number; lng: number }> = {
   m1:  { lat: 13.3392, lng: 74.7449 },
@@ -65,6 +69,18 @@ export default function DirectoryPage() {
   const [branch, setBranch]     = useState("All");
   const [gotra, setGotra]       = useState("Gotra: All");
   const [selected, setSelected] = useState<string | null>(null);
+  const [dbUsers, setDbUsers]   = useState<DbUser[]>([]);
+
+  useEffect(() => {
+    fetch("/api/verifications")          // reuse — returns all unverified users
+      .then(r => r.ok ? r.json() : [])
+      .then(setDbUsers)
+      .catch(() => {});
+    // Also fetch all verified users from stats endpoint shape
+    fetch("/api/activity")
+      .then(r => r.ok ? r.json() : [])
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => COMMUNITY_MEMBERS.filter(m => {
     const matchBranch  = branch === "All" || m.branch === branch;
@@ -223,6 +239,43 @@ export default function DirectoryPage() {
           )}
         </div>
       </div>
+
+      {/* Recently Registered (DB users) */}
+      {dbUsers.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-base font-bold mb-4 flex items-center gap-2"
+            style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
+            <UserPlus size={16} style={{ color:"#8B5E3C" }} />
+            Recently Registered Members ({dbUsers.length})
+          </h3>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {dbUsers.map((u, i) => (
+              <motion.div key={u.id} initial={{ opacity:0,y:8 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.04 }}
+                className="rounded-2xl border p-4"
+                style={{ background:"white", borderColor:"#DFC5A0" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-base shrink-0"
+                    style={{ background:"linear-gradient(135deg,#1B4332,#2D6A4F)", color:"white" }}>
+                    {u.name.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm truncate" style={{ color:"#0D2B1E" }}>{u.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{u.gotra} Gotra</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <MapPin size={9} className="text-gray-400" />
+                      <span className="text-xs text-gray-400">{(u.native||"—").split(",")[0]}</span>
+                    </div>
+                  </div>
+                </div>
+                <span className="mt-2 text-xs px-2 py-0.5 rounded-full inline-block"
+                  style={{ background:"#FEF3C7", color:"#D97706" }}>
+                  Pending Verification
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
     </SidebarLayout>
   );
 }
