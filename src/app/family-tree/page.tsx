@@ -38,7 +38,7 @@ const NODES = [
   { id:"3", x:435, y:265, label:"Venkatesh Kamat",   sub:"Grandfather · Bharadwaja", gen:2 },
   { id:"4", x:240, y:415, label:"Suresh Kamat",      sub:"Father · Kashyap",         gen:3 },
   { id:"5", x:660, y:415, label:"Rekha Pai",         sub:"Aunt · Bharadwaja",        gen:3 },
-  { id:"6", x:240, y:560, label:"Priya Kamat",       sub:"You · Kashyap",            gen:4 },
+  { id:"6", x:240, y:560, label:"You",                sub:"Sample member · Kashyap",  gen:4 },
 ];
 const LINES = [
   { x1:300,y1:110,x2:435,y2:265,delay:0.25 },
@@ -179,7 +179,7 @@ type SelectedId = string | null;  // static node id ("1"–"6") or MongoDB _id
 
 export default function FamilyTreePage() {
   const [selected, setSelected]     = useState<SelectedId>(null);
-  const [treeMode, setTreeMode]     = useState<"demo"|"my">("demo");
+  const [treeMode, setTreeMode]     = useState<"demo"|"my">("my");
   const [drawn, setDrawn]           = useState(false);
   const [showAdd, setShowAdd]       = useState(false);
   const [dbMembers, setDbMembers]   = useState<DbMember[]>([]);
@@ -286,7 +286,7 @@ export default function FamilyTreePage() {
               {/* Tree mode toggle */}
               <div className="flex gap-1 p-1 rounded-xl" style={{ background:"#F0E6D3", border:"1px solid #DFC5A0" }}>
                 {([
-                  { key:"demo", label:"Demo Tree" },
+                  { key:"demo", label:"Example Tree" },
                   { key:"my",   label:`My Tree${dbMembers.length ? ` (${dbMembers.length})` : ""}` },
                 ] as const).map(({key,label}) => (
                   <button key={key} onClick={() => setTreeMode(key)}
@@ -312,6 +312,10 @@ export default function FamilyTreePage() {
 
             {treeMode === "demo" && (
               <>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-3 py-1 rounded-full text-xs font-semibold"
+                  style={{ background:"#FEF3C7", color:"#D97706", border:"1px solid #FDE68A" }}>
+                  ⚠ Sample data — switch to My Tree to build your own
+                </div>
                 <div className="absolute left-3 top-0 bottom-0 flex flex-col pointer-events-none py-16 justify-around">
                   {["Gen I","Gen II","Gen III","Gen IV"].map(g => (
                     <span key={g} className="text-xs font-semibold"
