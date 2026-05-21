@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
 
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const db = await getDb();
+    const member = await db.collection("family_members").findOne({ _id: new ObjectId(id) });
+    if (!member) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ ...member, _id: member._id.toString() });
+  } catch (err) {
+    console.error("Family GET error:", err);
+    return NextResponse.json({ error: "Fetch failed" }, { status: 500 });
+  }
+}
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;

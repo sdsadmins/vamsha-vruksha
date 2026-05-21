@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, CheckCircle, Shield, Award, CreditCard, Smartphone, Building, Heart } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { WELFARE_CAMPAIGNS } from "@/lib/data";
+import { getUser } from "@/lib/auth";
 
 const PRESET_AMOUNTS = [500, 2000, 5000, 10000];
 
@@ -31,6 +32,14 @@ export default function DonatePage() {
   const [payMethod, setPayMethod] = useState<PayMethod>("upi");
   const [wantsCert, setWantsCert] = useState(true);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [donorName, setDonorName] = useState("");
+  const [donorPhone, setDonorPhone] = useState("");
+
+  useEffect(() => {
+    const user = getUser();
+    if (user) { setDonorName(user.name); setDonorPhone(user.phone); }
+  }, []);
 
   const finalAmount = customAmount ? parseInt(customAmount) || 0 : amount;
   const pct = Math.round((campaign.raised / campaign.goal) * 100);
@@ -240,11 +249,35 @@ export default function DonatePage() {
 
             {/* Submit */}
             <button
-              onClick={() => setSubmitted(true)}
-              disabled={finalAmount === 0}
+              onClick={async () => {
+                if (finalAmount === 0) return;
+                setSubmitting(true);
+                try {
+                  await fetch("/api/donations", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      campaignId: campaign.id,
+                      campaignTitle: campaign.title,
+                      amount: finalAmount,
+                      donorName,
+                      donorPhone,
+                      message,
+                      payMethod,
+                      wantsCert,
+                      donationType,
+                    }),
+                  });
+                } catch { /* ignore — still show success */ }
+                setSubmitting(false);
+                setSubmitted(true);
+              }}
+              disabled={finalAmount === 0 || submitting}
               className="w-full py-4 rounded-xl font-bold text-white text-base flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 disabled:opacity-50"
               style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)", boxShadow: "0 4px 20px rgba(27,67,50,0.3)" }}>
-              <Heart size={18} fill="white" /> Contribute ₹{finalAmount ? finalAmount.toLocaleString("en-IN") : "—"}
+              {submitting
+                ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing…</>
+                : <><Heart size={18} fill="white" /> Contribute ₹{finalAmount ? finalAmount.toLocaleString("en-IN") : "—"}</>}
             </button>
             <p className="text-xs text-center text-gray-400 mt-3">
               Secured by Daivajna Samaja Samiti. By contributing, you agree to the{" "}
