@@ -1,14 +1,23 @@
 "use client";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, Clock, Users, Route, Navigation, Share2,
-  CheckCircle, Plus, ChevronDown, ChevronUp, Info,
+  CheckCircle, Plus, ChevronDown, ChevronUp, Info, Search, X,
 } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
-import { INVITATION_FAMILIES } from "@/lib/data";
+import { INVITATION_FAMILIES, COMMUNITY_MEMBERS } from "@/lib/data";
+
+// Branch → approximate Bengaluru coords for community members
+const BRANCH_COORDS: Record<string, { lat: number; lng: number }> = {
+  Bengaluru:    { lat: 12.9716, lng: 77.5946 },
+  Kundapura:   { lat: 13.3392, lng: 74.7449 },
+  Kumta:       { lat: 14.4264, lng: 74.4179 },
+  Mangaluru:   { lat: 12.9141, lng: 74.8560 },
+  Udupi:       { lat: 13.3379, lng: 74.7443 },
+  "Out-of-State": { lat: 18.5204, lng: 73.8567 },
+};
 
 // Leaflet must be client-only (no SSR)
 const RouteMap = dynamic(() => import("@/components/RouteMap"), {
@@ -57,6 +66,10 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+type InviteeFamily = typeof INVITATION_FAMILIES[0];
+
+const BLANK_MANUAL = { name: "", area: "", address: "", phone: "", estimatedVisit: "30 min", relation: "" };
+
 export default function InvitationsPage() {
   const [selected, setSelected] = useState<string[]>(["if7", "if8", "if1"]);
   const [optimized, setOptimized] = useState(false);
@@ -68,6 +81,65 @@ export default function InvitationsPage() {
   const [realRouteMin, setRealRouteMin] = useState<number | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
 
+  // Search + Add state
+  const [listSearch, setListSearch] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [addTab, setAddTab] = useState<"community"|"manual">("community");
+  const [communitySearch, setCommunitySearch] = useState("");
+  const [manualForm, setManualForm] = useState(BLANK_MANUAL);
+  const [customFamilies, setCustomFamilies] = useState<InviteeFamily[]>([]);
+
+  const allFamilies = useMemo<InviteeFamily[]>(
+    () => [...INVITATION_FAMILIES, ...customFamilies],
+    [customFamilies]
+  );
+
+  const filteredList = useMemo(() => {
+    const q = listSearch.toLowerCase();
+    if (!q) return allFamilies;
+    return allFamilies.filter(f =>
+      f.name.toLowerCase().includes(q) ||
+      f.area.toLowerCase().includes(q) ||
+      (f.relation ?? "").toLowerCase().includes(q)
+    );
+  }, [allFamilies, listSearch]);
+
+  const filteredCommunity = useMemo(() => {
+    const q = communitySearch.toLowerCase();
+    const alreadyIn = new Set(allFamilies.map(f => f.name.toLowerCase()));
+    return COMMUNITY_MEMBERS.filter(m =>
+      !alreadyIn.has(m.name.toLowerCase()) &&
+      (!q || m.name.toLowerCase().includes(q) || m.gotra.toLowerCase().includes(q) || m.branch.toLowerCase().includes(q))
+    );
+  }, [communitySearch, allFamilies]);
+
+  const addFromCommunity = (m: typeof COMMUNITY_MEMBERS[0]) => {
+    const coords = BRANCH_COORDS[m.branch] ?? { lat: 12.972, lng: 77.594 };
+    const newFam: InviteeFamily = {
+      id: `cm-${m.id}`, name: m.name, relation: `${m.branch} Branch · ${m.gotra} Gotra`,
+      address: m.location, area: m.branch, lat: coords.lat, lng: coords.lng,
+      photo: m.photo, phone: "", note: m.occupation, estimatedVisit: "30 min",
+    };
+    setCustomFamilies(prev => [...prev, newFam]);
+    setShowAdd(false);
+    setCommunitySearch("");
+  };
+
+  const addManually = () => {
+    if (!manualForm.name.trim()) return;
+    const newFam: InviteeFamily = {
+      id: `manual-${Date.now()}`, name: manualForm.name.trim(),
+      relation: manualForm.relation || "Community Member",
+      address: manualForm.address, area: manualForm.area || "Bengaluru",
+      lat: 12.972, lng: 77.594,
+      photo: "", phone: manualForm.phone,
+      note: "", estimatedVisit: manualForm.estimatedVisit,
+    };
+    setCustomFamilies(prev => [...prev, newFam]);
+    setManualForm(BLANK_MANUAL);
+    setShowAdd(false);
+  };
+
   const toggle = useCallback((id: string) => {
     setOptimized(false);
     setSelected(prev => {
@@ -78,14 +150,14 @@ export default function InvitationsPage() {
   }, []);
 
   const handleOptimize = () => {
-    const order = optimizeRoute(INVITATION_FAMILIES, selected);
+    const order = optimizeRoute(allFamilies, selected);
     setRouteOrder(order);
     setOptimized(true);
   };
 
   const orderedFamilies = useMemo(
-    () => routeOrder.map(id => INVITATION_FAMILIES.find(f => f.id === id)!).filter(Boolean),
-    [routeOrder]
+    () => routeOrder.map(id => allFamilies.find(f => f.id === id)!).filter(Boolean),
+    [routeOrder, allFamilies]
   );
 
   // Fetch real road route from OSRM whenever orderedFamilies changes
@@ -124,7 +196,7 @@ export default function InvitationsPage() {
   }, [orderedFamilies, realRouteKm, realRouteMin]);
 
   const mapFamilies = orderedFamilies.map((f, i) => ({ ...f, stopNumber: i + 1 }));
-  const allMapFamilies = INVITATION_FAMILIES.map(f => ({ ...f, stopNumber: routeOrder.indexOf(f.id) + 1 }));
+  const allMapFamilies = allFamilies.map(f => ({ ...f, stopNumber: routeOrder.indexOf(f.id) + 1 }));
 
   // Estimated arrival times starting 9:00 AM
   const arrivals = useMemo(() => {
@@ -204,16 +276,38 @@ export default function InvitationsPage() {
 
           {/* Family list */}
           <div className="rounded-2xl border overflow-hidden flex-1" style={{ background: "white", borderColor: "#DFC5A0" }}>
-            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: "#F3F4F6" }}>
-              <h3 className="font-bold text-sm" style={{ color: "#0D2B1E" }}>
-                Select Invitees ({selected.length} selected)
-              </h3>
-              <button className="text-xs font-semibold flex items-center gap-1" style={{ color: "#1B4332" }}>
-                <Plus size={12} /> Add Family
-              </button>
+            <div className="p-4 border-b space-y-2" style={{ borderColor: "#F3F4F6" }}>
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm" style={{ color: "#0D2B1E" }}>
+                  Select Invitees ({selected.length} selected)
+                </h3>
+                <button onClick={() => { setShowAdd(true); setCommunitySearch(""); setManualForm(BLANK_MANUAL); }}
+                  className="text-xs font-semibold flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-all hover:bg-green-50"
+                  style={{ borderColor: "#1B4332", color: "#1B4332" }}>
+                  <Plus size={12} /> Add Invitee
+                </button>
+              </div>
+              {/* Search */}
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  value={listSearch} onChange={e => setListSearch(e.target.value)}
+                  placeholder="Search by name, area…"
+                  className="w-full pl-8 pr-8 py-2 text-xs border rounded-lg outline-none"
+                  style={{ borderColor: "#DFC5A0" }}
+                />
+                {listSearch && (
+                  <button onClick={() => setListSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                    <X size={12} className="text-gray-400" />
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="divide-y overflow-y-auto" style={{ borderColor: "#F9F9F9", maxHeight: "460px" }}>
-              {INVITATION_FAMILIES.map(fam => {
+            <div className="divide-y overflow-y-auto" style={{ borderColor: "#F9F9F9", maxHeight: "420px" }}>
+              {filteredList.length === 0 && (
+                <div className="py-8 text-center text-xs text-gray-400">No matches for &ldquo;{listSearch}&rdquo;</div>
+              )}
+              {filteredList.map(fam => {
                 const isSelected = selected.includes(fam.id);
                 const stopIdx = routeOrder.indexOf(fam.id);
                 return (
@@ -232,9 +326,12 @@ export default function InvitationsPage() {
                       {isSelected ? stopIdx + 1 : ""}
                     </div>
                     {/* Photo */}
-                    <div className="w-11 h-11 rounded-full overflow-hidden border-2 shrink-0"
-                      style={{ borderColor: isSelected ? "#1B4332" : "#DFC5A0" }}>
-                      <img src={fam.photo} alt={fam.name} className="w-full h-full object-cover" />
+                    <div className="w-11 h-11 rounded-full overflow-hidden border-2 shrink-0 flex items-center justify-center"
+                      style={{ borderColor: isSelected ? "#1B4332" : "#DFC5A0", background: "#F0E6D3" }}>
+                      {fam.photo
+                        ? <img src={fam.photo} alt={fam.name} className="w-full h-full object-cover" />
+                        : <span className="text-base font-bold" style={{ color: "#8B5E3C" }}>{fam.name.charAt(0)}</span>
+                      }
                     </div>
                     {/* Info */}
                     <div className="flex-1 min-w-0">
@@ -245,10 +342,7 @@ export default function InvitationsPage() {
                     </div>
                     {/* Toggle */}
                     <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                      style={isSelected
-                        ? { background: "#1B4332" }
-                        : { border: "2px solid #D1D5DB" }
-                      }>
+                      style={isSelected ? { background: "#1B4332" } : { border: "2px solid #D1D5DB" }}>
                       {isSelected && <CheckCircle size={14} className="text-white" />}
                     </div>
                   </div>
@@ -366,6 +460,143 @@ export default function InvitationsPage() {
           )}
         </div>
       </div>
+
+      {/* Add Invitee modal */}
+      <AnimatePresence>
+        {showAdd && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.5)" }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowAdd(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
+              className="rounded-3xl overflow-hidden w-full max-w-md"
+              style={{ background: "white", maxHeight: "85vh", display: "flex", flexDirection: "column" }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div className="p-5 border-b flex items-center justify-between shrink-0" style={{ borderColor: "#F3F4F6" }}>
+                <h3 className="font-bold text-base" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
+                  Add Invitee
+                </h3>
+                <button onClick={() => setShowAdd(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100">
+                  <X size={16} className="text-gray-500" />
+                </button>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex gap-1 p-3 shrink-0" style={{ background: "#FAF7F2", borderBottom: "1px solid #F3F4F6" }}>
+                {(["community", "manual"] as const).map(tab => (
+                  <button key={tab} onClick={() => setAddTab(tab)}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all"
+                    style={addTab === tab
+                      ? { background: "linear-gradient(135deg, #1B4332, #2D6A4F)", color: "white" }
+                      : { color: "#6B7280" }}>
+                    {tab === "community" ? "Search Community" : "Add Manually"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab content */}
+              <div className="overflow-y-auto flex-1">
+                {addTab === "community" && (
+                  <div>
+                    <div className="p-4 border-b" style={{ borderColor: "#F3F4F6" }}>
+                      <div className="relative">
+                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          autoFocus
+                          value={communitySearch} onChange={e => setCommunitySearch(e.target.value)}
+                          placeholder="Search by name, gotra, or branch…"
+                          className="w-full pl-8 pr-4 py-2.5 text-sm border rounded-xl outline-none"
+                          style={{ borderColor: "#DFC5A0" }}
+                        />
+                      </div>
+                    </div>
+                    <div className="divide-y" style={{ borderColor: "#F9F9F9" }}>
+                      {filteredCommunity.length === 0 && (
+                        <p className="text-xs text-gray-400 text-center py-8">All community members already in your list</p>
+                      )}
+                      {filteredCommunity.map(m => (
+                        <button key={m.id} onClick={() => addFromCommunity(m)}
+                          className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left">
+                          <div className="w-11 h-11 rounded-full overflow-hidden border-2 shrink-0" style={{ borderColor: "#DFC5A0" }}>
+                            <img src={m.photo} alt={m.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm truncate" style={{ color: "#0D2B1E" }}>{m.name}</p>
+                            <p className="text-xs text-gray-400 truncate">{m.occupation}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs" style={{ color: "#1B4332" }}>{m.gotra} Gotra</span>
+                              <span className="text-xs text-gray-400">· {m.branch}</span>
+                            </div>
+                          </div>
+                          <div className="shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center"
+                            style={{ borderColor: "#1B4332" }}>
+                            <Plus size={13} style={{ color: "#1B4332" }} />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {addTab === "manual" && (
+                  <div className="p-5 space-y-4">
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Name *</label>
+                      <input value={manualForm.name} onChange={e => setManualForm(f => ({ ...f, name: e.target.value }))}
+                        placeholder="e.g. Suresh Kamath" className="w-full px-3 py-2.5 text-sm border rounded-xl outline-none"
+                        style={{ borderColor: "#DFC5A0" }} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Relation / Role</label>
+                      <input value={manualForm.relation} onChange={e => setManualForm(f => ({ ...f, relation: e.target.value }))}
+                        placeholder="e.g. Uncle · Kashyap Gotra" className="w-full px-3 py-2.5 text-sm border rounded-xl outline-none"
+                        style={{ borderColor: "#DFC5A0" }} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Area</label>
+                        <input value={manualForm.area} onChange={e => setManualForm(f => ({ ...f, area: e.target.value }))}
+                          placeholder="e.g. Jayanagar" className="w-full px-3 py-2.5 text-sm border rounded-xl outline-none"
+                          style={{ borderColor: "#DFC5A0" }} />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 block mb-1">Est. Visit Time</label>
+                        <select value={manualForm.estimatedVisit} onChange={e => setManualForm(f => ({ ...f, estimatedVisit: e.target.value }))}
+                          className="w-full px-3 py-2.5 text-sm border rounded-xl outline-none"
+                          style={{ borderColor: "#DFC5A0" }}>
+                          {["15 min","30 min","45 min","60 min","90 min"].map(v => <option key={v}>{v}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Address</label>
+                      <input value={manualForm.address} onChange={e => setManualForm(f => ({ ...f, address: e.target.value }))}
+                        placeholder="Full address" className="w-full px-3 py-2.5 text-sm border rounded-xl outline-none"
+                        style={{ borderColor: "#DFC5A0" }} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 block mb-1">Phone</label>
+                      <input value={manualForm.phone} onChange={e => setManualForm(f => ({ ...f, phone: e.target.value }))}
+                        placeholder="+91 98765 43210" className="w-full px-3 py-2.5 text-sm border rounded-xl outline-none"
+                        style={{ borderColor: "#DFC5A0" }} />
+                    </div>
+                    <button onClick={addManually} disabled={!manualForm.name.trim()}
+                      className="w-full py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50"
+                      style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+                      Add to Invite List
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Navigation started modal */}
       <AnimatePresence>
