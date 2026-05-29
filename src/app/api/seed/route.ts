@@ -4,7 +4,7 @@ import { getDb } from "@/lib/mongodb";
 
 const DEMO_USERS = [
   {
-    name: "Priya Kamat",
+    name: "Priya Haldankar",
     phone: "9876543210",
     gotra: "Kashyap",
     native: "Bengaluru, Karnataka",
@@ -13,19 +13,19 @@ const DEMO_USERS = [
     verified: true,
   },
   {
-    name: "Shri Narayanarao Shet",
+    name: "Shri Narayanarao Suvarna",
     phone: "9999999999",
     gotra: "Bharadwaja",
-    native: "Kundapura, Karnataka",
+    native: "Kumta, Uttara Kannada",
     role: "elder",
     avatar: "1",
     verified: true,
   },
   {
-    name: "Ananya Sharma",
+    name: "Ananya Kolwekar",
     phone: "9871234567",
     gotra: "Bharadwaja",
-    native: "New Delhi",
+    native: "Bengaluru, Karnataka",
     role: "member",
     avatar: "2",
     verified: true,

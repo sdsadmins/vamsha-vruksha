@@ -23,21 +23,21 @@ const GOTRAS   = ["Kashyap","Bharadwaja","Vasishtha","Atreya","Kaundinya","Vishw
 const BRANCHES = ["Bengaluru","Kundapura","Kumta","Mangaluru","Udupi","Out-of-State"];
 
 const LIFE_ARCHIVES: Record<string, string> = {
-  "1": "Ramachandra Shet was the patriarch of our Kundapura branch — a master goldsmith who established the family jewellery tradition in 1942.",
-  "2": "Savitribai Shet was the matriarch renowned for devotion to Samaj seva and Sanskrit shlokas.",
-  "3": "Venkatesh Kamat migrated from Kumta to Bengaluru in 1975 to expand the jewellery trade to Commercial Street.",
-  "4": "Suresh Kamat is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom.",
-  "5": "Rekha Pai is a distinguished educator who established the Daivajna Samaja scholarship fund in 2008.",
-  "6": "Priya Kamat represents the new generation — digitising 500+ family photos and building this platform.",
+  "1": "Ramachandra Suvarna was the patriarch of our Kundapura branch — a master goldsmith who established the family jewellery tradition in 1942.",
+  "2": "Savitribai Suvarna was the matriarch renowned for devotion to Samaj seva and Sanskrit shlokas.",
+  "3": "Venkatesh Haldankar migrated from Kumta to Bengaluru in 1975 to expand the jewellery trade to Commercial Street.",
+  "4": "Suresh Haldankar is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom.",
+  "5": "Rekha Diwakar is a distinguished educator who established the Daivajna Samaja scholarship fund in 2008.",
+  "6": "Priya Haldankar represents the new generation — digitising 500+ family photos and building this platform.",
 };
 
 // Static demo tree
 const NODES = [
-  { id:"1", x:300, y:110, label:"Ramachandra Shet",  sub:"Patriarch · Kashyap",      gen:1 },
-  { id:"2", x:570, y:110, label:"Savitribai Shet",   sub:"Matriarch · Kashyap",      gen:1 },
-  { id:"3", x:435, y:265, label:"Venkatesh Kamat",   sub:"Grandfather · Bharadwaja", gen:2 },
-  { id:"4", x:240, y:415, label:"Suresh Kamat",      sub:"Father · Kashyap",         gen:3 },
-  { id:"5", x:660, y:415, label:"Rekha Pai",         sub:"Aunt · Bharadwaja",        gen:3 },
+  { id:"1", x:300, y:110, label:"Ramachandra Suvarna",  sub:"Patriarch · Kashyap",      gen:1 },
+  { id:"2", x:570, y:110, label:"Savitribai Suvarna",   sub:"Matriarch · Kashyap",      gen:1 },
+  { id:"3", x:435, y:265, label:"Venkatesh Haldankar",  sub:"Grandfather · Bharadwaja", gen:2 },
+  { id:"4", x:240, y:415, label:"Suresh Haldankar",     sub:"Father · Kashyap",         gen:3 },
+  { id:"5", x:660, y:415, label:"Rekha Diwakar",        sub:"Aunt · Bharadwaja",        gen:3 },
   { id:"6", x:240, y:560, label:"You",                sub:"Sample member · Kashyap",  gen:4 },
 ];
 const LINES = [
@@ -732,7 +732,7 @@ export default function FamilyTreePage() {
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Full Name *</label>
-                    <input type="text" placeholder="e.g. Ramesh Kamath Shenoy" value={form.name}
+                    <input type="text" placeholder="e.g. Ramesh Haldankar" value={form.name}
                       onChange={e => setForm(p=>({...p, name:e.target.value}))}
                       className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
                       style={{ borderColor:"#DFC5A0" }} />

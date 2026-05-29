@@ -16,12 +16,12 @@ interface DbMember {
 }
 
 const LIFE_ARCHIVES: Record<string, string> = {
-  "1": "Ramachandra Shet was the patriarch of our Kundapura branch and a master goldsmith. He established the family jewellery tradition in 1942 and his 47-year handwritten ledger is the foundation of our digital tree today.",
-  "2": "Savitribai Shet was the matriarch renowned for her devotion to Samaj seva and Sanskrit shlokas. She organised the first Samaj women's collective in Kundapura and raised funds for the community temple.",
-  "3": "Venkatesh Kamat migrated from Kumta to Bengaluru in 1975 to expand the jewellery business to Commercial Street. His descendants now span Bengaluru, Mangaluru, Singapore, and Dubai.",
-  "4": "Suresh Kamat is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom. He co-founded the Daivajna Samaja IT professionals' network.",
-  "5": "Rekha Pai is a distinguished educator and Samaj community leader. She established the Daivajna Samaja annual scholarship fund in 2008, mentoring over 300 students from the community.",
-  "6": "Priya Kamat represents the new generation — digitising 500+ family photos, creating this Daivajna Samaja platform, and connecting 1,400+ families across the Daivajna Samaja worldwide.",
+  "1": "Ramachandra Suvarna was the patriarch of our Kundapura branch and a master goldsmith. He established the family jewellery tradition in 1942 and his 47-year handwritten ledger is the foundation of our digital tree today.",
+  "2": "Savitribai Suvarna was the matriarch renowned for her devotion to Samaj seva and Sanskrit shlokas. She organised the first Samaj women's collective in Kundapura and raised funds for the community temple.",
+  "3": "Venkatesh Haldankar migrated from Kumta to Bengaluru in 1975 to expand the jewellery business to Commercial Street. His descendants now span Bengaluru, Mangaluru, Singapore, and Dubai.",
+  "4": "Suresh Haldankar is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom. He co-founded the Daivajna Samaja IT professionals' network.",
+  "5": "Rekha Diwakar is a distinguished educator and Samaj community leader. She established the Daivajna Samaja annual scholarship fund in 2008, mentoring over 300 students from the community.",
+  "6": "Priya Haldankar represents the new generation — digitising 500+ family photos, creating this Daivajna Samaja platform, and connecting 1,400+ families across the Daivajna Samaja worldwide.",
 };
 
 function isMongoId(id: string) {
@@ -426,7 +426,7 @@ export default function ProfilePage() {
           <div className="rounded-2xl border p-5" style={{ background:"linear-gradient(160deg, #F7F0E8, #FAF7F2)", borderColor:"#DFC5A0" }}>
             <h2 className="font-bold mb-3" style={{ color:"#0D2B1E" }}>Lineage Position</h2>
             <div className="flex items-center gap-2 flex-wrap">
-              {["Ramachandra Bhat","Venkatesh Bhat",staticMember.name].map((name,i,arr)=>(
+              {["Ramachandra Suvarna","Venkatesh Haldankar",staticMember.name].map((name,i,arr)=>(
                 <div key={name} className="flex items-center gap-2">
                   <span className="text-xs px-3 py-1.5 rounded-full font-medium"
                     style={{ background:i===arr.length-1?"linear-gradient(135deg, #1B4332, #2D6A4F)":"#DFC5A0", color:i===arr.length-1?"white":"#6B5C4A" }}>

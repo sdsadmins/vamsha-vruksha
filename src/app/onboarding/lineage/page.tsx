@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { MapPin, GitBranch, Search, CheckCircle } from "lucide-react";
 
 const STATIC_ANCESTORS = [
-  { id: "1", name: "Rameshwar Rao Daivagna", location: "Puttur, Kumta · Kashyap Gotra", nominator: "Nominated by 3 Existing Members", avatar: "RD", gotra: "Kashyap" },
-  { id: "2", name: "Vinayak Gokarna Lineage", location: "Kumta, Karnataka · Bharadwaja Gotra", nominator: "Nominated by 2 Existing Members", avatar: "VG", gotra: "Bharadwaja" },
+  { id: "1", name: "Rameshwar Rao Revankar", location: "Puttur, Kumta · Kashyap Gotra", nominator: "Nominated by 3 Existing Members", avatar: "RR", gotra: "Kashyap" },
+  { id: "2", name: "Vinayak Gokarnakar Lineage", location: "Kumta, Karnataka · Bharadwaja Gotra", nominator: "Nominated by 2 Existing Members", avatar: "VG", gotra: "Bharadwaja" },
 ];
 
 interface Ancestor {
@@ -167,8 +167,8 @@ export default function LineagePage() {
                     <div className="w-px h-6 bg-gray-300" />
                     <div className="px-4 py-2 rounded-lg border text-center w-full border-gray-200">
                       {connected.length > 0
-                        ? allAncestors.find(a => a.id === connected[0])?.name ?? "Rameshwar Rao"
-                        : "Rameshwar Rao"}
+                        ? allAncestors.find(a => a.id === connected[0])?.name ?? "Rameshwar Rao Revankar"
+                        : "Rameshwar Rao Revankar"}
                     </div>
                   </>
                 )}
