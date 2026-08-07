@@ -5,8 +5,23 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { PlusCircle, TrendingUp, BarChart2 } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
-import { WELFARE_CAMPAIGNS } from "@/lib/data";
+import { apiGet, apiPost, errorMessage } from "@/lib/api";
 import { getUser, type VVUser } from "@/lib/auth";
+
+/** A campaign card from GET /api/welfare/campaigns. `id` is the slug. */
+interface Campaign {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  goal: number;
+  raised: number;
+  daysLeft: number | null;
+  backers: number;
+  image: string;
+  color: string;
+  status: string;
+}
 
 export default function WelfarePage() {
   const router = useRouter();
@@ -14,6 +29,9 @@ export default function WelfarePage() {
   const [donating, setDonating] = useState<string | null>(null);
   const [donated, setDonated] = useState<Record<string, boolean>>({});
   const [amount, setAmount] = useState("500");
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loadError, setLoadError] = useState("");
+  const [donateError, setDonateError] = useState("");
 
   useEffect(() => {
     const u = getUser();
@@ -22,31 +40,46 @@ export default function WelfarePage() {
       return;
     }
     setUser(u);
+    apiGet<Campaign[]>("/api/welfare/campaigns")
+      .then(setCampaigns)
+      .catch(err => setLoadError(errorMessage(err, "Could not load campaigns.")));
   }, [router]);
 
   const handleDonate = async (id: string) => {
     setDonating(id);
+    setDonateError("");
+    const campaign = campaigns.find(c => c.id === id);
+    const value = parseInt(amount) || 500;
     try {
-      await fetch("/api/donations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          campaignId: id,
-          campaignTitle: "General Welfare Fund",
-          amount: parseInt(amount) || 500,
-          donorName: user?.name ?? "Anonymous",
-          donorPhone: user?.phone ?? "",
-          payMethod: "upi",
-          donationType: "onetime",
-        }),
+      await apiPost("/api/welfare/donations", {
+        campaignId: id,
+        campaignTitle: campaign?.title ?? "General Welfare Fund",
+        amount: value,
+        donorName: user?.name ?? "Anonymous",
+        donorPhone: user?.phone ?? "",
+        payMethod: "upi",
+        donationType: "onetime",
       });
-    } catch { /* ignore */ }
-    setDonating(null);
-    setDonated((d) => ({ ...d, [id]: true }));
+      setDonated((d) => ({ ...d, [id]: true }));
+      // Reflect the new total without a page reload.
+      setCampaigns(cs => cs.map(c =>
+        c.id === id ? { ...c, raised: c.raised + value, backers: c.backers + 1 } : c));
+    } catch (err) {
+      // The old page marked the donation as done even when the write failed.
+      setDonateError(errorMessage(err, "Could not record your donation."));
+    } finally {
+      setDonating(null);
+    }
   };
 
   return (
     <SidebarLayout title="Community Welfare">
+      {(loadError || donateError) && (
+        <div className="mb-4 rounded-xl border px-4 py-3 text-sm"
+          style={{ background:"#FEE2E2", borderColor:"#FCA5A5", color:"#991B1B" }}>
+          {loadError || donateError}
+        </div>
+      )}
       {/* Hero Stats Banner */}
       <motion.div
         initial={{ opacity: 0, y: -16 }}
@@ -112,7 +145,7 @@ export default function WelfarePage() {
             Active Fundraising Campaigns
           </h2>
           <div className="space-y-5">
-            {WELFARE_CAMPAIGNS.map((c, i) => {
+            {campaigns.map((c, i) => {
               const pct = Math.round((c.raised / c.goal) * 100);
               return (
                 <motion.div
@@ -144,7 +177,8 @@ export default function WelfarePage() {
                             {c.category}
                           </span>
                           <span className="text-xs text-gray-400">
-                            {c.daysLeft} days left · {c.backers} backers
+                            {c.daysLeft === null ? "Ongoing" : `${c.daysLeft} days left`}
+                            {" · "}{c.backers} {c.backers === 1 ? "backer" : "backers"}
                           </span>
                         </div>
                       </div>

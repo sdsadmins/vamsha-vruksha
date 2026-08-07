@@ -1,69 +1,168 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { TreePine, ArrowRight, CheckCircle, Users, Shield, Heart, ChevronDown } from "lucide-react";
-import { saveUser } from "@/lib/auth";
-import TestCredentialHint from "@/components/TestCredentialHint";
+import { TreePine, ArrowRight, CheckCircle, Users, Shield, Heart, ChevronDown, Check, X, Loader2 } from "lucide-react";
+import { apiGet, apiPost, errorMessage } from "@/lib/api";
+import { saveSession } from "@/lib/auth";
+import type { VVUser } from "@/lib/auth";
 
 const GOTRAS = ["Kashyap", "Bharadwaja", "Vasishtha", "Atreya", "Kaundinya", "Vishwamitra", "Gautama"];
-const AVATAR_NUMS = ["1","2","3","4","5","6","7","8"];
+
+const USERNAME_RE = /^[a-z0-9._]{3,30}$/;
+
+type UsernameCheck = { userName: string; available: boolean; suggestions: string[] };
+type SendOtpResponse = { destination: string; resendAfterSeconds: number };
+type RegisterResponse = {
+  success: true;
+  user: VVUser;
+  token: string;
+  /** Placeholders in other members' trees that matched this phone number. */
+  linkedNodes: number;
+};
+
+/** Same normalisation the server applies, so the field shows what will be saved. */
+function slugifyName(raw: string): string {
+  return raw
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9._]/g, "")
+    .replace(/[._]{2,}/g, "_")
+    .replace(/^[._]+|[._]+$/g, "")
+    .slice(0, 30);
+}
 
 export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState<"details" | "otp">("details");
-  const [name, setName]       = useState("");
-  const [phone, setPhone]     = useState("");
-  const [gotra, setGotra]     = useState("Kashyap");
-  const [native, setNative]   = useState("");
-  const [gender, setGender]   = useState<"M" | "F">("M");
-  const [otp, setOtp]         = useState("");
-  const [error, setError]     = useState("");
-  const [loading, setLoading] = useState(false);
+  const [name, setName]         = useState("");
+  const [userName, setUserName] = useState("");
+  const [phone, setPhone]       = useState("");
+  const [gotra, setGotra]       = useState("Kashyap");
+  const [native, setNative]     = useState("");
+  const [gender, setGender]     = useState<"M" | "F">("M");
+  const [otp, setOtp]           = useState("");
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [maskedTo, setMaskedTo] = useState("");
+  const [resendIn, setResendIn] = useState(0);
 
-  const handleNext = () => {
-    if (!name.trim()) { setError("Please enter your full name"); return; }
-    if (phone.length < 10) { setError("Please enter a valid 10-digit phone number"); return; }
-    setError(""); setStep("otp");
+  // Username availability, checked as they type.
+  const [checking, setChecking]       = useState(false);
+  const [available, setAvailable]     = useState<boolean | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const touchedUserName = useRef(false);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
+  const checkUserName = useCallback(async (value: string) => {
+    if (!USERNAME_RE.test(value)) {
+      setAvailable(null);
+      setSuggestions([]);
+      return;
+    }
+    setChecking(true);
+    try {
+      const res = await apiGet<UsernameCheck>("/api/user/username/check", {
+        anonymous: true,
+        query: { userName: value },
+      });
+      setAvailable(res.available);
+      setSuggestions(res.suggestions ?? []);
+    } catch {
+      // A failed check must not block the form — the server rejects a taken
+      // username at registration anyway.
+      setAvailable(null);
+      setSuggestions([]);
+    } finally {
+      setChecking(false);
+    }
+  }, []);
+
+  // Debounced so a 12-character username is one request, not twelve.
+  useEffect(() => {
+    if (!userName) {
+      setAvailable(null);
+      setSuggestions([]);
+      return;
+    }
+    const t = setTimeout(() => void checkUserName(userName), 400);
+    return () => clearTimeout(t);
+  }, [userName, checkUserName]);
+
+  /** Suggest a handle from the name, until they edit the field themselves. */
+  const onNameBlur = () => {
+    if (touchedUserName.current || !name.trim()) return;
+    const suggested = slugifyName(name);
+    if (suggested.length >= 3) setUserName(suggested);
   };
 
-  const handleVerify = async () => {
-    if (otp !== "121212") { setError("Invalid OTP. Use 121212 for this demo."); return; }
+  const sendOtp = async () => {
     setLoading(true);
     setError("");
-
-    const avatar = AVATAR_NUMS[Math.floor(Math.random() * AVATAR_NUMS.length)];
-
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          phone,
-          gotra,
-          native: native.trim() || "Karnataka",
-          role: "member",
-          avatar,
-          gender,
-        }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Registration failed. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      saveUser(data.user);
-      router.push("/onboarding/identity");
-    } catch {
-      setError("Network error. Please check your connection.");
+      const res = await apiPost<SendOtpResponse>(
+        "/api/otp/send",
+        { channel: "sms", destination: phone, purpose: "register" },
+        { anonymous: true },
+      );
+      setMaskedTo(res.destination);
+      setResendIn(res.resendAfterSeconds);
+      setStep("otp");
+    } catch (err) {
+      setError(errorMessage(err, "Could not send the code. Please try again."));
+    } finally {
       setLoading(false);
     }
   };
+
+  const handleNext = () => {
+    if (!name.trim()) { setError("Please enter your full name"); return; }
+    if (!USERNAME_RE.test(userName)) {
+      setError("Username must be 3–30 characters: lowercase letters, numbers, . or _");
+      return;
+    }
+    if (available === false) { setError("That username is taken — pick another"); return; }
+    if (phone.length !== 10) { setError("Please enter a valid 10-digit phone number"); return; }
+    setError("");
+    void sendOtp();
+  };
+
+  const handleVerify = async () => {
+    if (otp.length < 4) return;
+    setLoading(true);
+    setError("");
+    try {
+      const data = await apiPost<RegisterResponse>(
+        "/api/user/register",
+        {
+          userName,
+          name: name.trim(),
+          phone,
+          otp,
+          gotra,
+          native: native.trim() || undefined,
+          gender,
+        },
+        { anonymous: true },
+      );
+      saveSession(data.user, data.token);
+      // Relatives who added this number as a placeholder are waiting for them
+      // to accept; the lineage step surfaces those invites.
+      router.push(data.linkedNodes > 0 ? "/onboarding/lineage" : "/onboarding/identity");
+    } catch (err) {
+      setError(errorMessage(err, "Registration failed. Please try again."));
+      setLoading(false);
+    }
+  };
+
+  const usernameBorder =
+    available === true ? "#2D6A4F" : available === false ? "#DC2626" : "#DFC5A0";
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: "#0D2B1E" }}>
@@ -86,7 +185,7 @@ export default function RegisterPage() {
             Begin your<br /><span className="gold-shimmer">lineage journey</span><br />today.
           </h2>
           <p className="text-green-200 text-base leading-relaxed">
-            Join 1,428 families who have documented their heritage and connected with their ancestral roots.
+            Join the families who have documented their heritage and connected with their ancestral roots.
           </p>
         </div>
         <div className="space-y-4">
@@ -132,32 +231,72 @@ export default function RegisterPage() {
                 <p className="text-gray-500 mb-6 text-sm">
                   Create your account and begin documenting your lineage
                 </p>
-                <TestCredentialHint hints={["Name: Aditi Rao  |  Phone: 9876543210  |  OTP: 121212"]} />
 
                 <div className="space-y-4 mt-4">
                   {/* Full name */}
                   <div>
                     <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1B4332" }}>Full Name</label>
                     <input type="text" placeholder="e.g. Aditi Shanbhag Rao" value={name}
-                      onChange={e => setName(e.target.value)}
+                      onChange={e => { setName(e.target.value); setError(""); }}
+                      onBlur={e => { e.target.style.borderColor = "#DFC5A0"; onNameBlur(); }}
                       className="w-full px-4 py-3 text-sm border rounded-xl outline-none bg-white"
                       style={{ borderColor: "#DFC5A0" }}
                       onFocus={e => e.target.style.borderColor = "#1B4332"}
-                      onBlur={e => e.target.style.borderColor = "#DFC5A0"}
                     />
+                  </div>
+
+                  {/* Username */}
+                  <div>
+                    <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1B4332" }}>Username</label>
+                    <div className="relative">
+                      <input type="text" placeholder="aditi.rao" value={userName}
+                        onChange={e => {
+                          touchedUserName.current = true;
+                          setUserName(e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, "").slice(0, 30));
+                          setError("");
+                        }}
+                        className="w-full px-4 py-3 pr-10 text-sm border rounded-xl outline-none bg-white"
+                        style={{ borderColor: usernameBorder }}
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                        {checking ? <Loader2 size={16} className="animate-spin text-gray-400" />
+                          : available === true ? <Check size={16} style={{ color: "#2D6A4F" }} />
+                          : available === false ? <X size={16} style={{ color: "#DC2626" }} />
+                          : null}
+                      </span>
+                    </div>
+                    <p className="text-xs mt-1"
+                      style={{ color: available === false ? "#DC2626" : available === true ? "#2D6A4F" : "#9CA3AF" }}>
+                      {available === true ? `${userName} is available`
+                        : available === false ? "Already taken"
+                        : "3–30 characters: lowercase letters, numbers, . or _"}
+                    </p>
+                    {available === false && suggestions.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {suggestions.map(s => (
+                          <button key={s} type="button"
+                            onClick={() => { touchedUserName.current = true; setUserName(s); }}
+                            className="text-xs px-2.5 py-1 rounded-full border transition-colors hover:bg-white"
+                            style={{ borderColor: "#DFC5A0", color: "#1B4332", background: "#FBF6EE" }}>
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Phone */}
                   <div>
                     <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1B4332" }}>Mobile Number</label>
-                    <input type="tel" placeholder="9876543210" value={phone}
-                      onChange={e => setPhone(e.target.value.replace(/\D/g, ""))}
+                    <input type="tel" inputMode="numeric" placeholder="9876543210" value={phone}
+                      onChange={e => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 10)); setError(""); }}
                       maxLength={10}
                       className="w-full px-4 py-3 text-sm border rounded-xl outline-none bg-white"
                       style={{ borderColor: "#DFC5A0" }}
                       onFocus={e => e.target.style.borderColor = "#1B4332"}
                       onBlur={e => e.target.style.borderColor = "#DFC5A0"}
                     />
+                    <p className="text-xs text-gray-400 mt-1">We&apos;ll text a code to confirm it&apos;s yours.</p>
                   </div>
 
                   {/* Gender */}
@@ -165,7 +304,7 @@ export default function RegisterPage() {
                     <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1B4332" }}>Gender</label>
                     <div className="flex gap-3">
                       {(["M","F"] as const).map(g => (
-                        <button key={g} onClick={() => setGender(g)}
+                        <button key={g} onClick={() => setGender(g)} type="button"
                           className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all"
                           style={gender === g
                             ? { background: "#1B4332", color: "white", borderColor: "#1B4332" }
@@ -205,10 +344,12 @@ export default function RegisterPage() {
 
                   {error && <p className="text-red-500 text-sm">{error}</p>}
 
-                  <button onClick={handleNext}
-                    className="w-full py-3.5 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+                  <button onClick={handleNext} disabled={loading}
+                    className="w-full py-3.5 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 disabled:opacity-60"
                     style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)", boxShadow: "0 4px 16px rgba(27,67,50,0.3)" }}>
-                    Continue <ArrowRight size={18} />
+                    {loading
+                      ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />&nbsp;Sending code…</>
+                      : <>Continue <ArrowRight size={18} /></>}
                   </button>
 
                   <p className="text-center text-sm text-gray-500">
@@ -224,29 +365,38 @@ export default function RegisterPage() {
                   style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
                   Verify your number
                 </h1>
-                <p className="text-gray-500 mb-6 text-sm">OTP sent to <strong>+91 {phone}</strong></p>
-                <TestCredentialHint hints={["Enter OTP: 121212"]} />
+                <p className="text-gray-500 mb-6 text-sm">
+                  Code sent to <strong>{maskedTo || `+91 ${phone}`}</strong>
+                </p>
                 <div className="space-y-4 mt-4">
-                  <input type="text" maxLength={6} placeholder="1 2 1 2 1 2" value={otp}
-                    onChange={e => setOtp(e.target.value.replace(/\D/g, ""))}
+                  <input type="text" inputMode="numeric" maxLength={6} placeholder="- - - - - -" value={otp}
+                    onChange={e => { setOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
                     className="w-full px-6 py-4 text-center text-3xl font-bold border rounded-xl outline-none bg-white"
                     style={{ borderColor: "#DFC5A0", color: "#1B4332", letterSpacing: "0.3em" }}
                     onFocus={e => e.target.style.borderColor = "#1B4332"}
                     onBlur={e => e.target.style.borderColor = "#DFC5A0"}
+                    onKeyDown={e => e.key === "Enter" && handleVerify()}
                     autoFocus
                   />
                   {error && <p className="text-red-500 text-sm">{error}</p>}
-                  <button onClick={handleVerify} disabled={loading || otp.length !== 6}
+                  <button onClick={handleVerify} disabled={loading || otp.length < 4}
                     className="w-full py-3.5 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60"
                     style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
                     {loading
                       ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />&nbsp;Creating account…</>
                       : <><CheckCircle size={18} /> Create Account &amp; Continue</>}
                   </button>
-                  <button onClick={() => { setStep("details"); setError(""); }}
-                    className="w-full text-sm text-gray-500 hover:text-gray-700">
-                    ← Back
-                  </button>
+                  <div className="flex items-center justify-between text-sm">
+                    <button onClick={() => { setStep("details"); setError(""); setOtp(""); }}
+                      className="text-gray-500 hover:text-gray-700">
+                      ← Back
+                    </button>
+                    <button onClick={sendOtp} disabled={resendIn > 0 || loading}
+                      className="font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ color: "#1B4332" }}>
+                      {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}

@@ -7,7 +7,7 @@ import {
   RefreshCw, Clock, AlertCircle, ArrowLeft, X, Map
 } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
-import { getUser, type VVUser } from "@/lib/auth";
+import { getUser, type VVUser, avatarSrc } from "@/lib/auth";
 import { AVATAR_SVGS } from "@/lib/avatarSvgs";
 
 type Modal = null | "mobile-otp" | "mobile-edit" | "address-edit" | "confirmed";
@@ -82,7 +82,7 @@ export default function VerifyPage() {
           <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border-2"
             style={{ borderColor: "#C4823A" }}>
             <img
-              src={user ? (AVATAR_SVGS[user.avatar] ?? "") : ""}
+              src={user ? (avatarSrc(user, AVATAR_SVGS)) : ""}
               alt={user?.name ?? "Member"}
               className="w-full h-full object-cover"
             />

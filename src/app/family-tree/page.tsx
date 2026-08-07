@@ -1,887 +1,858 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, ArrowRight, Plus, Search, Star, MapPin, Briefcase,
-  Calendar, Users, Camera, ChevronDown, Trash2, UserPlus, TreePine
+  X, Plus, Search, Users, Trash2, UserPlus, TreePine, Bell,
+  Check, Clock, AlertTriangle, Mail,
 } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
-import { FAMILY_MEMBERS } from "@/lib/data";
-import { AVATAR_SVGS } from "@/lib/avatarSvgs";
+import { apiDelete, apiGet, apiPost, errorMessage } from "@/lib/api";
 
-type StaticMember = (typeof FAMILY_MEMBERS)[0];
+/**
+ * The Vamsha Vruksha, rendered from the relationship graph.
+ *
+ * The server does not return a laid-out tree: it returns the people reachable
+ * from the viewer over accepted relationships (`nodes`), the relationships
+ * between them (`edges`), and each person's generation relative to the viewer —
+ * negative for ancestors, positive for descendants. Everything below turns that
+ * into positions.
+ */
 
-interface DbMember {
-  _id: string; name: string; gender: string; dob?: string;
-  dod?: string; gotra: string; native: string; occupation: string;
-  phone: string; photoUrl: string; generation: number;
-  branch: string; notes: string; parentId?: string;
+const RELATIONS = [
+  "father", "mother", "spouse", "brother", "sister", "son", "daughter",
+] as const;
+type Relation = (typeof RELATIONS)[number];
+
+interface TreeNode {
+  id: string;
+  name: string;
+  gender: string | null;
+  status: string;
+  photoUrl: string;
+  isPlaceholder: boolean;
+  deceased: boolean;
+  linkedUserId: string | null;
+  generation: number;
+  relationToRoot: string;
+  isSelf: boolean;
+  dob: string | null;
 }
 
-const GOTRAS   = ["Kashyap","Bharadwaja","Vasishtha","Atreya","Kaundinya","Vishwamitra","Gautama"];
-const BRANCHES = ["Bengaluru","Kundapura","Kumta","Mangaluru","Udupi","Out-of-State"];
+interface TreeEdge { from: string; to: string; relation: Relation }
 
-const LIFE_ARCHIVES: Record<string, string> = {
-  "1": "Ramachandra Suvarna was the patriarch of our Kundapura branch — a master goldsmith who established the family jewellery tradition in 1942.",
-  "2": "Savitribai Suvarna was the matriarch renowned for devotion to Samaj seva and Sanskrit shlokas.",
-  "3": "Venkatesh Haldankar migrated from Kumta to Bengaluru in 1975 to expand the jewellery trade to Commercial Street.",
-  "4": "Suresh Haldankar is the first in the family to enter software engineering — bridging the goldsmith legacy with the Bengaluru IT boom.",
-  "5": "Rekha Diwakar is a distinguished educator who established the Daivajna Samaja scholarship fund in 2008.",
-  "6": "Priya Haldankar represents the new generation — digitising 500+ family photos and building this platform.",
-};
-
-// Static demo tree
-const NODES = [
-  { id:"1", x:300, y:110, label:"Ramachandra Suvarna",  sub:"Patriarch · Kashyap",      gen:1 },
-  { id:"2", x:570, y:110, label:"Savitribai Suvarna",   sub:"Matriarch · Kashyap",      gen:1 },
-  { id:"3", x:435, y:265, label:"Venkatesh Haldankar",  sub:"Grandfather · Bharadwaja", gen:2 },
-  { id:"4", x:240, y:415, label:"Suresh Haldankar",     sub:"Father · Kashyap",         gen:3 },
-  { id:"5", x:660, y:415, label:"Rekha Diwakar",        sub:"Aunt · Bharadwaja",        gen:3 },
-  { id:"6", x:240, y:560, label:"You",                sub:"Sample member · Kashyap",  gen:4 },
-];
-const LINES = [
-  { x1:300,y1:110,x2:435,y2:265,delay:0.25 },
-  { x1:570,y1:110,x2:435,y2:265,delay:0.35 },
-  { x1:435,y1:265,x2:240,y2:415,delay:0.65 },
-  { x1:435,y1:265,x2:660,y2:415,delay:0.75 },
-  { x1:240,y1:415,x2:240,y2:560,delay:1.05 },
-];
-
-function dist(x1:number,y1:number,x2:number,y2:number){ return Math.sqrt((x2-x1)**2+(y2-y1)**2); }
-const R = 46;
-
-function StaticTreeNode({ node,isSelected,onClick,drawn,isLate }:{
-  node:(typeof NODES)[0]; isSelected:boolean; onClick:()=>void; drawn:boolean; isLate:boolean;
-}) {
-  const isYou = node.id === "6";
-  const photoSize = R*2-6; const half = photoSize/2;
-  return (
-    <g className="cursor-pointer" onClick={onClick}
-      style={{ opacity: drawn?1:0, transition:`opacity 0.45s ease ${0.15+(node.gen-1)*0.38}s` }}>
-      {isSelected && (
-        <circle cx={node.x} cy={node.y} r={R+8} fill="none" stroke="#C4823A" strokeWidth="2" opacity="0.5">
-          <animate attributeName="r" values={`${R+6};${R+12};${R+6}`} dur="2s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.5;0.15;0.5" dur="2s" repeatCount="indefinite" />
-        </circle>
-      )}
-      <circle cx={node.x} cy={node.y} r={R} fill="white"
-        stroke={isSelected?"#C4823A":isLate?"#D1D5DB":"#2D6A4F"} strokeWidth={isSelected?3:2.5} />
-      <defs>
-        <clipPath id={`clip-${node.id}`}><circle cx={node.x} cy={node.y} r={R-3} /></clipPath>
-      </defs>
-      <foreignObject x={node.x-half} y={node.y-half} width={photoSize} height={photoSize} clipPath={`url(#clip-${node.id})`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={AVATAR_SVGS[node.id]??""} alt={node.label} width={photoSize} height={photoSize}
-          style={{ objectFit:"cover", display:"block", filter:isLate?"grayscale(55%)":"none" }} />
-      </foreignObject>
-      <circle cx={node.x} cy={node.y} r={R} fill="none"
-        stroke={isSelected?"#C4823A":isLate?"#9CA3AF":"#2D6A4F"} strokeWidth={isSelected?3:2.5} />
-      {isYou && (
-        <>
-          <rect x={node.x-16} y={node.y+R-2} width="32" height="14" rx="7" fill="#C4823A" />
-          <text x={node.x} y={node.y+R+9} textAnchor="middle" fill="white" fontSize="8" fontWeight="800" fontFamily="Inter, sans-serif">YOU</text>
-        </>
-      )}
-      <text x={node.x} y={node.y+R+(isYou?22:14)} textAnchor="middle" fill="#0D2B1E" fontSize="11" fontWeight="700" fontFamily="Inter, sans-serif">
-        {node.label.split(" ").slice(0,2).join(" ")}
-      </text>
-      <text x={node.x} y={node.y+R+(isYou?35:27)} textAnchor="middle" fill="#6B7280" fontSize="9" fontFamily="Inter, sans-serif">
-        {node.sub.split("·")[0].trim()}
-      </text>
-    </g>
-  );
+interface TreeResponse {
+  rootId: string;
+  nodes: TreeNode[];
+  edges: TreeEdge[];
+  /** True when the graph was larger than the server's traversal cap. */
+  truncated: boolean;
 }
 
-// Dynamic tree node for DB members
-function DynamicNode({ member, x, y, isSelected, onClick }: {
-  member: DbMember; x: number; y: number; isSelected: boolean; onClick: () => void;
+interface UserPreview {
+  _id: string;
+  userName: string;
+  name: string;
+  profileUrl?: string;
+  samajId?: string;
+  gotra?: string;
+  native?: string;
+  phone?: string;
+}
+
+interface PendingRequest {
+  _id: string;
+  relation: Relation;
+  message: string;
+  requester?: { name?: string; photoUrl?: string };
+}
+
+interface Invite {
+  relationshipId: string;
+  relation: Relation;
+  message: string;
+  requester?: { name?: string; photoUrl?: string };
+}
+
+interface FamilyNotification {
+  _id: string;
+  type: string;
+  message: string;
+  read?: boolean;
+  createdAt?: string;
+}
+
+// ── Layout ──────────────────────────────────────────────────────────────────
+const NODE_R = 42;
+const COL_GAP = 190;
+const ROW_GAP = 170;
+const PADDING = 70;
+
+interface Placed extends TreeNode { x: number; y: number }
+
+/**
+ * One row per generation, people spread evenly across it. Not a genealogical
+ * layout — no attempt to keep couples adjacent or to avoid crossing lines —
+ * but it is stable, never overlaps, and reads correctly top-to-bottom as
+ * oldest-to-youngest.
+ */
+function layout(nodes: TreeNode[]): { placed: Placed[]; width: number; height: number } {
+  if (!nodes.length) return { placed: [], width: 600, height: 400 };
+
+  const byGeneration = new Map<number, TreeNode[]>();
+  for (const n of nodes) {
+    const row = byGeneration.get(n.generation) ?? [];
+    row.push(n);
+    byGeneration.set(n.generation, row);
+  }
+
+  const generations = [...byGeneration.keys()].sort((a, b) => a - b);
+  const widest = Math.max(...[...byGeneration.values()].map(r => r.length));
+  const width = Math.max(widest * COL_GAP + PADDING * 2, 640);
+
+  const placed: Placed[] = [];
+  generations.forEach((gen, rowIndex) => {
+    // Self first in its row, then alphabetical — so the viewer's own node has a
+    // stable position instead of jumping as relatives are added.
+    const row = (byGeneration.get(gen) ?? []).sort((a, b) =>
+      a.isSelf === b.isSelf ? a.name.localeCompare(b.name) : a.isSelf ? -1 : 1);
+    const rowWidth = row.length * COL_GAP;
+    const startX = (width - rowWidth) / 2 + COL_GAP / 2;
+    row.forEach((node, i) => {
+      placed.push({ ...node, x: startX + i * COL_GAP, y: PADDING + rowIndex * ROW_GAP });
+    });
+  });
+
+  return {
+    placed,
+    width,
+    height: PADDING * 2 + Math.max(generations.length - 1, 0) * ROW_GAP,
+  };
+}
+
+function initials(name: string): string {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+}
+
+// ── Node ────────────────────────────────────────────────────────────────────
+function TreeNodeCircle({ node, selected, onClick }: {
+  node: Placed; selected: boolean; onClick: () => void;
 }) {
-  const photoSize = R*2-6; const half = photoSize/2;
-  const isLate = !!member.dod;
-  const clipId = `dclip-${member._id}`;
+  const ring = node.isSelf ? "#C4823A" : node.deceased ? "#9CA3AF" : "#2D6A4F";
+  const fill = node.deceased ? "#4B5563" : node.isPlaceholder ? "#6B7280" : "#1B4332";
+
   return (
     <g className="cursor-pointer" onClick={onClick}>
-      {isSelected && (
-        <circle cx={x} cy={y} r={R+8} fill="none" stroke="#C4823A" strokeWidth="2" opacity="0.5">
-          <animate attributeName="r" values={`${R+6};${R+12};${R+6}`} dur="2s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.5;0.15;0.5" dur="2s" repeatCount="indefinite" />
-        </circle>
+      {selected && (
+        <circle cx={node.x} cy={node.y} r={NODE_R + 8} fill="none" stroke={ring}
+          strokeWidth={2} strokeDasharray="4 4" opacity={0.8} />
       )}
-      <circle cx={x} cy={y} r={R} fill="white"
-        stroke={isSelected?"#C4823A":isLate?"#D1D5DB":"#2D6A4F"} strokeWidth={isSelected?3:2.5} />
-      <defs>
-        <clipPath id={clipId}><circle cx={x} cy={y} r={R-3} /></clipPath>
-      </defs>
-      {member.photoUrl ? (
-        <foreignObject x={x-half} y={y-half} width={photoSize} height={photoSize} clipPath={`url(#${clipId})`}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={member.photoUrl} alt={member.name} width={photoSize} height={photoSize}
-            style={{ objectFit:"cover", display:"block", filter:isLate?"grayscale(55%)":"none" }} />
-        </foreignObject>
+      <circle cx={node.x} cy={node.y} r={NODE_R} fill={fill}
+        stroke={ring} strokeWidth={node.isSelf ? 4 : 2}
+        opacity={node.deceased ? 0.75 : 1} />
+      {node.photoUrl ? (
+        <>
+          <clipPath id={`clip-${node.id}`}>
+            <circle cx={node.x} cy={node.y} r={NODE_R - 3} />
+          </clipPath>
+          <image href={node.photoUrl} x={node.x - NODE_R + 3} y={node.y - NODE_R + 3}
+            width={(NODE_R - 3) * 2} height={(NODE_R - 3) * 2}
+            clipPath={`url(#clip-${node.id})`} preserveAspectRatio="xMidYMid slice" />
+        </>
       ) : (
-        <text x={x} y={y+5} textAnchor="middle" fontSize="28" fill={isLate?"#9CA3AF":"#1B4332"}>
-          {member.gender === "F" ? "👩" : "👨"}
+        <text x={node.x} y={node.y + 6} textAnchor="middle" fill="white"
+          fontSize={18} fontWeight={700}>
+          {initials(node.name)}
         </text>
       )}
-      <circle cx={x} cy={y} r={R} fill="none"
-        stroke={isSelected?"#C4823A":isLate?"#9CA3AF":"#2D6A4F"} strokeWidth={isSelected?3:2.5} />
-      <text x={x} y={y+R+14} textAnchor="middle" fill="#0D2B1E" fontSize="11" fontWeight="700" fontFamily="Inter, sans-serif">
-        {member.name.split(" ").slice(0,2).join(" ")}
+      <text x={node.x} y={node.y + NODE_R + 18} textAnchor="middle"
+        fill="#0D2B1E" fontSize={12} fontWeight={700}>
+        {node.name.length > 20 ? `${node.name.slice(0, 19)}…` : node.name}
       </text>
-      <text x={x} y={y+R+27} textAnchor="middle" fill="#6B7280" fontSize="9" fontFamily="Inter, sans-serif">
-        {member.gotra} · Gen {member.generation}
+      <text x={node.x} y={node.y + NODE_R + 33} textAnchor="middle"
+        fill="#6B7280" fontSize={10}>
+        {node.relationToRoot}
       </text>
+      {node.isPlaceholder && !node.deceased && (
+        <text x={node.x} y={node.y + NODE_R + 46} textAnchor="middle"
+          fill="#D97706" fontSize={9} fontWeight={600}>
+          Not joined yet
+        </text>
+      )}
     </g>
   );
 }
 
-// Layout: distribute DB members by generation across SVG width
-function computeLayout(members: DbMember[]): Record<string, { x: number; y: number }> {
-  const GEN_Y: Record<number, number> = { 1:100, 2:240, 3:380, 4:520, 5:660 };
-  const W = 860, PAD = 80;
-  const groups: Record<number, DbMember[]> = {};
-  members.forEach(m => {
-    const g = Math.min(Math.max(m.generation || 1, 1), 5);
-    groups[g] = groups[g] || [];
-    groups[g].push(m);
-  });
-  const pos: Record<string, { x: number; y: number }> = {};
-  Object.entries(groups).forEach(([gen, mems]) => {
-    const y = GEN_Y[parseInt(gen)] ?? 100 + (parseInt(gen)-1)*140;
-    const step = mems.length > 1 ? (W - 2*PAD) / (mems.length - 1) : 0;
-    const startX = mems.length === 1 ? W/2 : PAD;
-    mems.forEach((m, i) => { pos[m._id] = { x: startX + i*step, y }; });
-  });
-  return pos;
-}
-
-// Canvas-based image compression to keep photos under ~150 KB
-function compressImage(dataUrl: string, maxW = 400, quality = 0.75): Promise<string> {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, maxW / Math.max(img.width, img.height));
-      const canvas = document.createElement("canvas");
-      canvas.width  = Math.round(img.width  * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL("image/jpeg", quality));
-    };
-    img.src = dataUrl;
-  });
-}
-
-const BLANK_FORM = { name:"", gender:"M", dob:"", dod:"", gotra:"Kashyap", native:"",
-  occupation:"", phone:"", generation:1, branch:"Bengaluru", notes:"", parentId:"" };
-
-type SelectedId = string | null;  // static node id ("1"–"6") or MongoDB _id
-
 export default function FamilyTreePage() {
-  const [selected, setSelected]     = useState<SelectedId>(null);
-  const [treeMode, setTreeMode]     = useState<"demo"|"my">("my");
-  const [drawn, setDrawn]           = useState(false);
-  const [showAdd, setShowAdd]       = useState(false);
-  const [dbMembers, setDbMembers]   = useState<DbMember[]>([]);
-  const [form, setForm]             = useState({ ...BLANK_FORM });
-  const [photoPreview, setPhotoPreview] = useState<string>("");
-  const [photoBase64, setPhotoBase64]   = useState<string>("");
-  const [saving, setSaving]         = useState(false);
-  const [saveError, setSaveError]   = useState("");
-  const [search, setSearch]         = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [tree, setTree]       = useState<TreeResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  useEffect(() => { const t=setTimeout(()=>setDrawn(true),220); return ()=>clearTimeout(t); }, []);
+  const [requests, setRequests]           = useState<PendingRequest[]>([]);
+  const [invites, setInvites]             = useState<Invite[]>([]);
+  const [notifications, setNotifications] = useState<FamilyNotification[]>([]);
+  const [showInbox, setShowInbox]         = useState(false);
 
-  const fetchDbMembers = useCallback(async () => {
+  const [showAdd, setShowAdd] = useState(false);
+
+  const loadTree = useCallback(async () => {
     try {
-      const res = await fetch("/api/family");
-      if (res.ok) {
-        const data = await res.json();
-        setDbMembers(data);
-        if (data.length > 0) setTreeMode("my");
-      }
-    } catch { /* ignore */ }
+      const data = await apiGet<TreeResponse>("/api/family-tree");
+      setTree(data);
+      setLoadError("");
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not load your family tree."));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchDbMembers(); }, [fetchDbMembers]);
+  const loadInbox = useCallback(async () => {
+    const [reqs, invs, notes] = await Promise.all([
+      apiGet<PendingRequest[]>("/api/family-tree/requests").catch(() => []),
+      apiGet<Invite[]>("/api/family-tree/invites").catch(() => []),
+      apiGet<FamilyNotification[]>("/api/family-tree/notifications").catch(() => []),
+    ]);
+    setRequests(reqs);
+    setInvites(invs);
+    setNotifications(notes);
+  }, []);
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10*1024*1024) { setSaveError("Photo must be under 10 MB"); return; }
-    const reader = new FileReader();
-    reader.onload = async ev => {
-      const raw = ev.target?.result as string;
-      const compressed = await compressImage(raw);
-      setPhotoPreview(compressed);
-      setPhotoBase64(compressed);
-    };
-    reader.readAsDataURL(file);
-  };
+  useEffect(() => {
+    void loadTree();
+    void loadInbox();
+  }, [loadTree, loadInbox]);
 
-  const handleSave = async () => {
-    if (!form.name.trim()) { setSaveError("Name is required"); return; }
-    setSaving(true); setSaveError("");
-    try {
-      const res = await fetch("/api/family", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, photoUrl: photoBase64 }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setSaveError(data.error || "Save failed"); setSaving(false); return; }
-      setShowAdd(false);
-      setForm({ ...BLANK_FORM });
-      setPhotoPreview(""); setPhotoBase64("");
-      fetchDbMembers();
-    } catch { setSaveError("Network error"); }
-    setSaving(false);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remove this member?")) return;
-    await fetch(`/api/family/${id}`, { method:"DELETE" });
-    setDbMembers(prev => prev.filter(m => m._id !== id));
-    if (selected === id) setSelected(null);
-  };
-
-  // Resolve what's selected
-  const selectedStatic: StaticMember|undefined = (!selected || selected.length < 10)
-    ? FAMILY_MEMBERS.find(m=>m.id===selected) : undefined;
-  const selectedDb: DbMember|undefined = (selected && selected.length >= 10)
-    ? dbMembers.find(m=>m._id===selected) : undefined;
-
-  const parentMember = selectedStatic?.parent ? FAMILY_MEMBERS.find(m=>m.id===selectedStatic.parent) : null;
-  const childrenMembers = selectedStatic ? FAMILY_MEMBERS.filter(m=>m.parent===selectedStatic.id) : [];
-
-  const dbLayout = computeLayout(dbMembers);
-
-  // Max gen for viewBox height
-  const maxGen = dbMembers.length ? Math.max(...dbMembers.map(m=>Math.min(m.generation,5))) : 4;
-  const GEN_Y: Record<number,number> = {1:100,2:240,3:380,4:520,5:660};
-  const dynamicViewH = (GEN_Y[maxGen] ?? 660) + 100;
-
-  const filteredDb = dbMembers.filter(m =>
-    !search || m.name.toLowerCase().includes(search.toLowerCase()) ||
-    (m.gotra||"").toLowerCase().includes(search.toLowerCase()) ||
-    (m.branch||"").toLowerCase().includes(search.toLowerCase())
+  const { placed, width, height } = useMemo(
+    () => layout(tree?.nodes ?? []), [tree],
   );
+  const positionById = useMemo(
+    () => new Map(placed.map(p => [p.id, p])), [placed],
+  );
+  const selected = selectedId ? positionById.get(selectedId) ?? null : null;
+
+  const pendingCount = requests.length + invites.length;
+
+  const respondToRequest = async (id: string, action: "accept" | "decline") => {
+    try {
+      await apiPost(`/api/family-tree/requests/${id}/${action}`);
+      setRequests(r => r.filter(x => x._id !== id));
+      if (action === "accept") await loadTree();
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not respond to that request."));
+    }
+  };
+
+  const respondToInvites = async (action: "accept" | "decline") => {
+    try {
+      await apiPost(`/api/family-tree/invites/${action}`);
+      setInvites([]);
+      if (action === "accept") await loadTree();
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not respond to those invitations."));
+    }
+  };
+
+  const removeMember = async (id: string) => {
+    try {
+      await apiDelete(`/api/family-tree/members/${id}`);
+      setSelectedId(null);
+      await loadTree();
+    } catch (err) {
+      setLoadError(errorMessage(err, "Could not remove that member."));
+    }
+  };
 
   return (
-    <SidebarLayout title="Daivajna Samaja — Family Tree">
-      <div className="flex gap-6" style={{ minHeight:"calc(100vh - 120px)" }}>
-        {/* Tree Canvas */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input placeholder="Search family members…"
-                  value={search} onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 py-2 text-sm border rounded-xl outline-none w-56"
-                  style={{ borderColor:"#DFC5A0" }} />
-              </div>
-              {/* Tree mode toggle */}
-              <div className="flex gap-1 p-1 rounded-xl" style={{ background:"#F0E6D3", border:"1px solid #DFC5A0" }}>
-                {([
-                  { key:"demo", label:"Example Tree" },
-                  { key:"my",   label:`My Tree${dbMembers.length ? ` (${dbMembers.length})` : ""}` },
-                ] as const).map(({key,label}) => (
-                  <button key={key} onClick={() => setTreeMode(key)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                    style={treeMode===key
-                      ? { background:"linear-gradient(135deg, #1B4332, #2D6A4F)", color:"white" }
-                      : { color:"#6B7280" }}>
-                    {label}
-                  </button>
-                ))}
-              </div>
+    <SidebarLayout title="Vamsha Vruksha">
+      {loadError && (
+        <div className="mb-4 rounded-xl border px-4 py-3 text-sm flex items-start gap-2"
+          style={{ background:"#FEE2E2", borderColor:"#FCA5A5", color:"#991B1B" }}>
+          <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+          <span>{loadError}</span>
+        </div>
+      )}
+
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div>
+          <h2 className="text-2xl font-bold" style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
+            My Family Tree
+          </h2>
+          <p className="text-sm text-gray-500">
+            {tree ? `${tree.nodes.length} ${tree.nodes.length === 1 ? "person" : "people"} connected` : "Loading…"}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowInbox(true)}
+            className="relative flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold"
+            style={{ borderColor:"#DFC5A0", color:"#1B4332", background:"white" }}>
+            <Bell size={15} /> Requests
+            {pendingCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 rounded-full text-xs font-bold text-white flex items-center justify-center"
+                style={{ background:"#DC2626" }}>
+                {pendingCount}
+              </span>
+            )}
+          </button>
+          <button onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+            style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+            <Plus size={15} /> Add Family Member
+          </button>
+        </div>
+      </div>
+
+      {invites.length > 0 && (
+        <div className="mb-5 rounded-2xl border p-4 flex flex-wrap items-center gap-3"
+          style={{ background:"#FBF6EE", borderColor:"#DFC5A0" }}>
+          <Mail size={18} style={{ color:"#8B5E3C" }} />
+          <p className="text-sm flex-1" style={{ color:"#6B4226" }}>
+            {invites.length === 1
+              ? invites[0].message
+              : `${invites.length} relatives have added you to their family tree.`}
+          </p>
+          <button onClick={() => respondToInvites("accept")}
+            className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
+            style={{ background:"#1B4332" }}>
+            Accept &amp; join
+          </button>
+          <button onClick={() => respondToInvites("decline")}
+            className="px-4 py-2 rounded-xl text-sm font-semibold border"
+            style={{ borderColor:"#DFC5A0", color:"#6B4226" }}>
+            Decline
+          </button>
+        </div>
+      )}
+
+      {tree?.truncated && (
+        <p className="mb-4 text-xs px-3 py-2 rounded-lg"
+          style={{ background:"#FEF3C7", color:"#92400E" }}>
+          Your family graph is larger than one view — only the closest relatives are shown.
+        </p>
+      )}
+
+      <div className="grid lg:grid-cols-3 gap-5">
+        {/* Canvas */}
+        <div className="lg:col-span-2 rounded-2xl border overflow-auto"
+          style={{ background:"white", borderColor:"#DFC5A0" }}>
+          {loading ? (
+            <div className="flex items-center justify-center h-96">
+              <div className="w-8 h-8 border-3 rounded-full animate-spin"
+                style={{ borderColor:"#DFC5A0", borderTopColor:"#1B4332" }} />
             </div>
-            <button onClick={() => { setShowAdd(true); setSaveError(""); }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shrink-0"
-              style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)", boxShadow:"0 2px 12px rgba(27,67,50,0.3)" }}>
-              <Plus size={16} /> Add Member
-            </button>
-          </div>
-
-          {/* SVG Canvas */}
-          <div className="rounded-3xl overflow-hidden relative"
-            style={{ background:"linear-gradient(160deg, #FAF7F2 0%, #F0E6D3 100%)", border:"1px solid #DFC5A0", minHeight:"620px" }}>
-
-            {treeMode === "demo" && (
-              <>
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ background:"#FEF3C7", color:"#D97706", border:"1px solid #FDE68A" }}>
-                  ⚠ Sample data — switch to My Tree to build your own
-                </div>
-                <div className="absolute left-3 top-0 bottom-0 flex flex-col pointer-events-none py-16 justify-around">
-                  {["Gen I","Gen II","Gen III","Gen IV"].map(g => (
-                    <span key={g} className="text-xs font-semibold"
-                      style={{ color:"#C49A6C", letterSpacing:"0.08em", writingMode:"vertical-rl", transform:"rotate(180deg)" }}>{g}</span>
-                  ))}
-                </div>
-                <svg viewBox="0 40 900 620" className="w-full h-full" style={{ minHeight:"600px" }}>
-                  {[110,265,415,560].map(y=>(
-                    <line key={y} x1="60" y1={y} x2="840" y2={y} stroke="#1B4332" strokeWidth="0.5" strokeDasharray="4,10" opacity="0.1" />
-                  ))}
-                  <line x1={300+R} y1="110" x2={570-R} y2="110" stroke="#C4823A" strokeWidth="1.5" strokeDasharray="5,4"
-                    opacity={drawn?0.65:0} style={{ transition:"opacity 0.4s 0.1s" }} />
-                  <text x="435" y="106" textAnchor="middle" fontSize="10" opacity={drawn?0.8:0} style={{ transition:"opacity 0.4s 0.15s" }}>♥</text>
-                  {LINES.map(({x1,y1,x2,y2,delay},i)=>{
-                    const length=dist(x1,y1,x2,y2);
-                    return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#8B5E3C" strokeWidth="2" strokeLinecap="round"
-                      strokeDasharray={length} strokeDashoffset={drawn?0:length}
-                      style={{ transition:`stroke-dashoffset 0.85s cubic-bezier(0.4,0,0.2,1) ${delay}s` }} opacity="0.6" />;
-                  })}
-                  {drawn && <><circle cx="435" cy="265" r="5" fill="#8B5E3C" opacity="0.45" /><circle cx="240" cy="415" r="5" fill="#8B5E3C" opacity="0.45" /></>}
-                  {NODES.map(node=>(
-                    <StaticTreeNode key={node.id} node={node} isSelected={selected===node.id}
-                      isLate={FAMILY_MEMBERS.find(m=>m.id===node.id)?.status==="Late"}
-                      onClick={()=>setSelected(selected===node.id?null:node.id)} drawn={drawn} />
-                  ))}
-                </svg>
-              </>
-            )}
-
-            {treeMode === "my" && (
-              <>
-                {dbMembers.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full py-24 gap-4">
-                    <TreePine size={48} style={{ color:"#C4823A" }} />
-                    <p className="font-semibold text-gray-500">Your family tree is empty</p>
-                    <p className="text-sm text-gray-400">Add members to build your personal tree</p>
-                    <button onClick={() => setShowAdd(true)}
-                      className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center gap-2"
-                      style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
-                      <Plus size={15} /> Add First Member
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {/* Gen labels */}
-                    <div className="absolute left-3 top-0 bottom-0 flex flex-col pointer-events-none py-8 justify-around">
-                      {Array.from({ length: maxGen }, (_, i) => (
-                        <span key={i} className="text-xs font-semibold"
-                          style={{ color:"#C49A6C", letterSpacing:"0.08em", writingMode:"vertical-rl", transform:"rotate(180deg)" }}>
-                          Gen {["I","II","III","IV","V"][i]}
-                        </span>
-                      ))}
-                    </div>
-                    <svg viewBox={`0 40 900 ${dynamicViewH}`} className="w-full" style={{ minHeight:"600px" }}>
-                      {/* Horizontal gen guide lines */}
-                      {Array.from({ length: maxGen }, (_, i) => (
-                        <line key={i} x1="60" y1={GEN_Y[i+1]} x2="840" y2={GEN_Y[i+1]}
-                          stroke="#1B4332" strokeWidth="0.5" strokeDasharray="4,10" opacity="0.1" />
-                      ))}
-                      {/* Parent-child lines */}
-                      {dbMembers.map(m => {
-                        if (!m.parentId) return null;
-                        const parentPos = dbLayout[m.parentId];
-                        const childPos  = dbLayout[m._id];
-                        if (!parentPos || !childPos) return null;
-                        const len = dist(parentPos.x, parentPos.y, childPos.x, childPos.y);
-                        return (
-                          <line key={`line-${m._id}`}
-                            x1={parentPos.x} y1={parentPos.y} x2={childPos.x} y2={childPos.y}
-                            stroke="#8B5E3C" strokeWidth="2" strokeLinecap="round" opacity="0.6"
-                            strokeDasharray={len} strokeDashoffset={drawn?0:len}
-                            style={{ transition:`stroke-dashoffset 0.9s ease 0.3s` }} />
-                        );
-                      })}
-                      {/* Nodes */}
-                      {dbMembers.map(m => {
-                        const pos = dbLayout[m._id];
-                        if (!pos) return null;
-                        return (
-                          <DynamicNode key={m._id} member={m} x={pos.x} y={pos.y}
-                            isSelected={selected===m._id}
-                            onClick={()=>setSelected(selected===m._id?null:m._id)} />
-                        );
-                      })}
-                    </svg>
-                  </>
-                )}
-              </>
-            )}
-
-            <div className="absolute bottom-4 right-4 flex flex-wrap gap-2">
-              {[{color:"#2D6A4F",label:"Active"},{color:"#9CA3AF",label:"In Memoriam"},{color:"#C4823A",label:"Selected"}].map(l=>(
-                <div key={l.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-                  style={{ background:"rgba(255,255,255,0.92)", border:"1px solid #DFC5A0" }}>
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor:l.color }} />{l.label}
-                </div>
+          ) : !tree || tree.nodes.length <= 1 ? (
+            <div className="flex flex-col items-center justify-center h-96 text-center px-8">
+              <TreePine size={40} style={{ color:"#B7E4C7" }} />
+              <h3 className="font-bold text-lg mt-4 mb-1"
+                style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
+                Your tree starts with you
+              </h3>
+              <p className="text-sm text-gray-500 max-w-sm mb-5">
+                Add a parent, sibling, spouse or child. If they already have an
+                account they will be asked to confirm; if not, we will hold their
+                place until they join.
+              </p>
+              <button onClick={() => setShowAdd(true)}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white"
+                style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+                <UserPlus size={15} /> Add your first relative
+              </button>
+            </div>
+          ) : (
+            <svg viewBox={`0 0 ${width} ${height}`} width="100%"
+              style={{ minHeight: 420, background:"#FDFCFA" }}>
+              {tree.edges.map((e, i) => {
+                const a = positionById.get(e.from);
+                const b = positionById.get(e.to);
+                if (!a || !b) return null;
+                const isSpouse = e.relation === "spouse";
+                return (
+                  <line key={`${e.from}-${e.to}-${i}`}
+                    x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                    stroke={isSpouse ? "#C4823A" : "#95D5B2"}
+                    strokeWidth={isSpouse ? 2 : 1.5}
+                    strokeDasharray={isSpouse ? "5 4" : undefined} />
+                );
+              })}
+              {placed.map(node => (
+                <TreeNodeCircle key={node.id} node={node}
+                  selected={node.id === selectedId}
+                  onClick={() => setSelectedId(node.id === selectedId ? null : node.id)} />
               ))}
-            </div>
-            {!selected && drawn && (
-              <motion.div initial={{ opacity:0,y:-6 }} animate={{ opacity:1,y:0 }} transition={{ delay:1.4 }}
-                className="absolute top-4 right-4 px-4 py-2 rounded-xl text-xs font-medium"
-                style={{ background:"rgba(27,67,50,0.07)", color:"#2D6A4F", border:"1px solid rgba(27,67,50,0.12)" }}>
-                👆 Click any node to explore
-              </motion.div>
-            )}
-          </div>
-
-          {/* DB Members List (My Tree mode) */}
-          {treeMode === "my" && filteredDb.length > 0 && (
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold" style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
-                  My Family Members ({filteredDb.length})
-                </h2>
-              </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredDb.map(m => (
-                  <motion.div key={m._id} initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
-                    className="rounded-2xl border overflow-hidden cursor-pointer"
-                    style={{ background:"white", borderColor: selected===m._id ? "#C4823A" : "#DFC5A0", boxShadow: selected===m._id ? "0 0 0 2px #C4823A40" : "none" }}
-                    onClick={() => setSelected(selected===m._id?null:m._id)}>
-                    <div className="relative h-32 overflow-hidden"
-                      style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
-                      {m.photoUrl ? (
-                        <img src={m.photoUrl} alt={m.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <UserPlus size={36} className="text-white/30" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0" style={{ background:"linear-gradient(to bottom, transparent 40%, rgba(13,43,30,0.85) 100%)" }} />
-                      <button onClick={(e) => { e.stopPropagation(); handleDelete(m._id); }}
-                        className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-red-100 transition-colors"
-                        style={{ background:"rgba(0,0,0,0.35)" }}>
-                        <Trash2 size={13} className="text-white" />
-                      </button>
-                      <div className="absolute bottom-2 left-3">
-                        <p className="text-white font-bold text-sm">{m.name}</p>
-                        <p className="text-green-300 text-xs">{m.gotra} Gotra · Gen {m.generation}</p>
-                      </div>
-                    </div>
-                    <div className="p-3 space-y-1.5">
-                      {m.occupation && (
-                        <div className="flex items-center gap-2">
-                          <Briefcase size={11} style={{ color:"#8B5E3C" }} />
-                          <p className="text-xs text-gray-600 truncate">{m.occupation}</p>
-                        </div>
-                      )}
-                      {m.native && (
-                        <div className="flex items-center gap-2">
-                          <MapPin size={11} style={{ color:"#8B5E3C" }} />
-                          <p className="text-xs text-gray-600 truncate">{m.native}</p>
-                        </div>
-                      )}
-                      {m.dob && (
-                        <div className="flex items-center gap-2">
-                          <Calendar size={11} style={{ color:"#8B5E3C" }} />
-                          <p className="text-xs text-gray-500">{m.dob}</p>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 pt-1">
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background:"#F0FBF4", color:"#1B4332" }}>
-                          {m.branch}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background:"#F7F0E8", color:"#8B5E3C" }}>
-                          {m.gender === "M" ? "Male" : "Female"}
-                        </span>
-                        <Link href={`/profile/${m._id}`}
-                          className="ml-auto text-xs font-semibold"
-                          style={{ color:"#1B4332" }}
-                          onClick={e => e.stopPropagation()}>
-                          View →
-                        </Link>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+            </svg>
           )}
         </div>
 
-        {/* Detail Panel */}
-        <AnimatePresence>
-          {/* Static node detail */}
-          {treeMode === "demo" && selected && selectedStatic && (
-            <motion.div key={`s-${selected}`}
-              initial={{ opacity:0,x:40,scale:0.97 }} animate={{ opacity:1,x:0,scale:1 }}
-              exit={{ opacity:0,x:40,scale:0.97 }} transition={{ duration:0.28, ease:"easeOut" }}
-              className="w-96 shrink-0">
-              <div className="rounded-3xl overflow-hidden sticky top-4"
-                style={{ background:"white", border:"1px solid #DFC5A0", boxShadow:"0 8px 48px rgba(27,67,50,0.15)" }}>
-                <div className="relative" style={{ height:"220px" }}>
-                  <img src={AVATAR_SVGS[selected]??""} alt={selectedStatic.name}
-                    className="w-full h-full object-cover object-top"
-                    style={selectedStatic.status==="Late"?{filter:"grayscale(40%)"}:{}} />
-                  <div className="absolute inset-0"
-                    style={{ background:"linear-gradient(to bottom, transparent 30%, rgba(13,43,30,0.95) 100%)" }} />
-                  <button onClick={()=>setSelected(null)}
-                    className="absolute top-3 right-3 p-1.5 rounded-full" style={{ background:"rgba(0,0,0,0.35)" }}>
-                    <X size={15} className="text-white" />
-                  </button>
-                  <div className="absolute top-3 left-3">
-                    {selectedStatic.status==="Active"
-                      ? <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background:"rgba(209,250,229,0.9)", color:"#065F46" }}>✓ Active Member</span>
-                      : <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background:"rgba(156,163,175,0.85)", color:"#fff" }}>In Memoriam</span>}
-                  </div>
-                  <div className="absolute bottom-4 left-5 right-5">
-                    <h3 className="text-xl font-bold text-white" style={{ fontFamily:"'Playfair Display', serif" }}>
-                      {selectedStatic.status==="Late"?"Late ":""}{selectedStatic.name}
-                    </h3>
-                    <p className="text-green-300 text-sm">{selectedStatic.relation}</p>
-                  </div>
+        {/* Detail panel */}
+        <div className="rounded-2xl border p-5 h-fit"
+          style={{ background:"white", borderColor:"#DFC5A0" }}>
+          {selected ? (
+            <>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="font-bold text-lg"
+                    style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
+                    {selected.name}
+                  </h3>
+                  <p className="text-sm text-gray-500">{selected.relationToRoot}</p>
                 </div>
-                <div className="p-5 space-y-4">
-                  <div className="grid grid-cols-3 gap-2">
-                    {[{icon:Calendar,label:"Born",value:selectedStatic.birthYear??"—"},{icon:Star,label:"Gotra",value:selectedStatic.gotra},{icon:MapPin,label:"Native",value:selectedStatic.native.split(",")[0]}].map(({icon:Icon,label,value})=>(
-                      <div key={label} className="rounded-xl p-2.5 text-center" style={{ background:"#F7F0E8" }}>
-                        <Icon size={12} className="mx-auto mb-1" style={{ color:"#8B5E3C" }} />
-                        <p className="text-xs text-gray-400">{label}</p>
-                        <p className="text-xs font-bold mt-0.5" style={{ color:"#0D2B1E" }}>{value}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-start gap-3 rounded-xl p-3" style={{ background:"#F0FBF4", border:"1px solid #B7E4C7" }}>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background:"#D1FAE5" }}>
-                      <Briefcase size={13} style={{ color:"#1B4332" }} />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400">Occupation</p>
-                      <p className="text-sm font-semibold leading-snug" style={{ color:"#0D2B1E" }}>{selectedStatic.occupation}</p>
-                    </div>
-                  </div>
-                  {(parentMember||childrenMembers.length>0) && (
-                    <div>
-                      <p className="text-xs text-gray-400 mb-2 flex items-center gap-1"><Users size={11} /> Family</p>
-                      <div className="space-y-1.5">
-                        {parentMember && (
-                          <div className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={()=>setSelected(parentMember.id)}>
-                            <div className="w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor:"#DFC5A0" }}>
-                              <img src={AVATAR_SVGS[parentMember.id]??""} alt={parentMember.name} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold truncate">{parentMember.name}</p>
-                              <p className="text-xs text-gray-400">{parentMember.relation}</p>
-                            </div>
-                            <ArrowRight size={11} className="text-gray-300" />
-                          </div>
-                        )}
-                        {childrenMembers.map(child=>(
-                          <div key={child.id} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={()=>setSelected(child.id)}>
-                            <div className="w-8 h-8 rounded-full overflow-hidden border" style={{ borderColor:"#DFC5A0" }}>
-                              <img src={AVATAR_SVGS[child.id]??""} alt={child.name} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold truncate">{child.name}</p>
-                              <p className="text-xs text-gray-400">{child.relation}</p>
-                            </div>
-                            <ArrowRight size={11} className="text-gray-300" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {LIFE_ARCHIVES[selected] && (
-                    <div className="rounded-xl p-4" style={{ background:"#FBF8F3", border:"1px solid #DFC5A0" }}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Star size={12} style={{ color:"#8B5E3C" }} fill="#8B5E3C" />
-                        <span className="text-xs font-semibold" style={{ color:"#1B4332" }}>Life Archive</span>
-                      </div>
-                      <p className="text-xs text-gray-600 italic leading-relaxed">&ldquo;{LIFE_ARCHIVES[selected]}&rdquo;</p>
-                    </div>
-                  )}
-                  <Link href={`/profile/${selected}`}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white"
-                    style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)", boxShadow:"0 4px 16px rgba(27,67,50,0.25)" }}>
-                    View Full Profile <ArrowRight size={14} />
-                  </Link>
-                </div>
+                <button onClick={() => setSelectedId(null)} className="p-1 rounded-full hover:bg-gray-100">
+                  <X size={16} />
+                </button>
               </div>
-            </motion.div>
-          )}
 
-          {/* DB node detail */}
-          {selectedDb && (
-            <motion.div key={`db-${selected}`}
-              initial={{ opacity:0,x:40,scale:0.97 }} animate={{ opacity:1,x:0,scale:1 }}
-              exit={{ opacity:0,x:40,scale:0.97 }} transition={{ duration:0.28, ease:"easeOut" }}
-              className="w-96 shrink-0">
-              <div className="rounded-3xl overflow-hidden sticky top-4"
-                style={{ background:"white", border:"1px solid #DFC5A0", boxShadow:"0 8px 48px rgba(27,67,50,0.15)" }}>
-                <div className="relative" style={{ height:"220px", background:"linear-gradient(160deg, #0D2B1E, #1B4332)" }}>
-                  {selectedDb.photoUrl
-                    ? <img src={selectedDb.photoUrl} alt={selectedDb.name} className="w-full h-full object-cover object-top" style={selectedDb.dod?{filter:"grayscale(40%)"}:{}} />
-                    : <div className="w-full h-full flex items-center justify-center text-7xl">{selectedDb.gender==="F"?"👩":"👨"}</div>
-                  }
-                  <div className="absolute inset-0" style={{ background:"linear-gradient(to bottom, transparent 30%, rgba(13,43,30,0.95) 100%)" }} />
-                  <button onClick={()=>setSelected(null)}
-                    className="absolute top-3 right-3 p-1.5 rounded-full" style={{ background:"rgba(0,0,0,0.35)" }}>
-                    <X size={15} className="text-white" />
-                  </button>
-                  <div className="absolute top-3 left-3">
-                    {selectedDb.dod
-                      ? <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background:"rgba(156,163,175,0.85)", color:"#fff" }}>In Memoriam</span>
-                      : <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background:"rgba(209,250,229,0.9)", color:"#065F46" }}>✓ Active Member</span>}
+              <dl className="space-y-2 text-sm mb-5">
+                {selected.dob && (
+                  <div className="flex justify-between">
+                    <dt className="text-gray-400">Born</dt>
+                    <dd className="font-medium" style={{ color:"#0D2B1E" }}>{selected.dob}</dd>
                   </div>
-                  <div className="absolute bottom-4 left-5 right-5">
-                    <h3 className="text-xl font-bold text-white" style={{ fontFamily:"'Playfair Display', serif" }}>
-                      {selectedDb.dod ? "Late " : ""}{selectedDb.name}
-                    </h3>
-                    <p className="text-green-300 text-sm">{selectedDb.branch} Branch</p>
-                  </div>
+                )}
+                <div className="flex justify-between">
+                  <dt className="text-gray-400">Status</dt>
+                  <dd className="font-medium" style={{ color:"#0D2B1E" }}>
+                    {selected.deceased ? "In remembrance"
+                      : selected.linkedUserId ? "Joined the Samaj"
+                      : "Awaiting their account"}
+                  </dd>
                 </div>
-                <div className="p-5 space-y-4">
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      {icon:Calendar,label:"Born", value:selectedDb.dob||"—"},
-                      {icon:Star,    label:"Gotra", value:selectedDb.gotra},
-                      {icon:MapPin,  label:"Native", value:(selectedDb.native||"—").split(",")[0]},
-                    ].map(({icon:Icon,label,value})=>(
-                      <div key={label} className="rounded-xl p-2.5 text-center" style={{ background:"#F7F0E8" }}>
-                        <Icon size={12} className="mx-auto mb-1" style={{ color:"#8B5E3C" }} />
-                        <p className="text-xs text-gray-400">{label}</p>
-                        <p className="text-xs font-bold mt-0.5" style={{ color:"#0D2B1E" }}>{value}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {selectedDb.occupation && (
-                    <div className="flex items-start gap-3 rounded-xl p-3" style={{ background:"#F0FBF4", border:"1px solid #B7E4C7" }}>
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background:"#D1FAE5" }}>
-                        <Briefcase size={13} style={{ color:"#1B4332" }} />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400">Occupation</p>
-                        <p className="text-sm font-semibold leading-snug" style={{ color:"#0D2B1E" }}>{selectedDb.occupation}</p>
-                      </div>
-                    </div>
-                  )}
-                  {selectedDb.notes && (
-                    <div className="rounded-xl p-4" style={{ background:"#FBF8F3", border:"1px solid #DFC5A0" }}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Star size={12} style={{ color:"#8B5E3C" }} fill="#8B5E3C" />
-                        <span className="text-xs font-semibold" style={{ color:"#1B4332" }}>Life Notes</span>
-                      </div>
-                      <p className="text-xs text-gray-600 italic leading-relaxed">&ldquo;{selectedDb.notes}&rdquo;</p>
-                    </div>
-                  )}
-                  <Link href={`/profile/${selectedDb._id}`}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm text-white"
-                    style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)", boxShadow:"0 4px 16px rgba(27,67,50,0.25)" }}>
-                    View Full Profile <ArrowRight size={14} />
-                  </Link>
+                <div className="flex justify-between">
+                  <dt className="text-gray-400">Generation</dt>
+                  <dd className="font-medium" style={{ color:"#0D2B1E" }}>
+                    {selected.generation === 0 ? "Yours"
+                      : selected.generation < 0 ? `${Math.abs(selected.generation)} above`
+                      : `${selected.generation} below`}
+                  </dd>
                 </div>
-              </div>
-            </motion.div>
+              </dl>
+
+              {selected.linkedUserId && (
+                <Link href={`/profile/${selected.linkedUserId}`}
+                  className="block w-full text-center py-2.5 rounded-xl text-sm font-semibold text-white mb-2"
+                  style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+                  View full profile
+                </Link>
+              )}
+
+              {!selected.isSelf && !selected.linkedUserId && (
+                <button onClick={() => removeMember(selected.id)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border"
+                  style={{ borderColor:"#FCA5A5", color:"#DC2626" }}>
+                  <Trash2 size={14} /> Remove from tree
+                </button>
+              )}
+              {selected.linkedUserId && !selected.isSelf && (
+                <p className="text-xs text-gray-400 text-center">
+                  They have their own account, so only they can leave the tree.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <Users size={28} className="mx-auto mb-3" style={{ color:"#B7E4C7" }} />
+              <p className="text-sm text-gray-500">Select anyone in the tree to see their details.</p>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
 
-      {/* ── Add Member Modal ── */}
       <AnimatePresence>
         {showAdd && (
-          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ backgroundColor:"rgba(0,0,0,0.55)" }}
-            onClick={() => setShowAdd(false)}>
-            <motion.div initial={{ scale:0.95,y:20 }} animate={{ scale:1,y:0 }} exit={{ scale:0.95,y:20 }}
-              className="relative w-full max-w-2xl rounded-2xl overflow-hidden"
-              style={{ background:"white", maxHeight:"90vh", display:"flex", flexDirection:"column" }}
-              onClick={e => e.stopPropagation()}>
-
-              <div className="flex items-center justify-between p-5 border-b shrink-0"
-                style={{ borderColor:"#DFC5A0", background:"linear-gradient(135deg, #0D2B1E, #1B4332)" }}>
-                <div>
-                  <h2 className="text-lg font-bold text-white" style={{ fontFamily:"'Playfair Display', serif" }}>Add Family Member</h2>
-                  <p className="text-green-300 text-xs mt-0.5">Enter details and upload a photo</p>
-                </div>
-                <button onClick={() => setShowAdd(false)} className="p-2 rounded-xl hover:bg-white/10 transition-colors">
-                  <X size={18} className="text-white" />
-                </button>
-              </div>
-
-              <div className="overflow-y-auto p-5 space-y-5">
-                {/* Photo upload */}
-                <div className="flex items-center gap-4">
-                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden shrink-0 cursor-pointer border-2 border-dashed"
-                    style={{ borderColor:"#DFC5A0", background:"#F7F0E8" }}
-                    onClick={() => fileRef.current?.click()}>
-                    {photoPreview ? (
-                      <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-                        <Camera size={22} style={{ color:"#C4823A" }} />
-                        <span className="text-xs text-gray-400">Add Photo</span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-                    <button onClick={() => fileRef.current?.click()}
-                      className="px-4 py-2 rounded-xl text-sm font-semibold border mb-1"
-                      style={{ borderColor:"#DFC5A0", color:"#1B4332" }}>
-                      Upload Photo
-                    </button>
-                    <p className="text-xs text-gray-400">JPG, PNG — auto-compressed</p>
-                    {photoPreview && (
-                      <button onClick={() => { setPhotoPreview(""); setPhotoBase64(""); }}
-                        className="text-xs text-red-400 hover:underline mt-1">Remove photo</button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Name + Gender */}
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Full Name *</label>
-                    <input type="text" placeholder="e.g. Ramesh Haldankar" value={form.name}
-                      onChange={e => setForm(p=>({...p, name:e.target.value}))}
-                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
-                      style={{ borderColor:"#DFC5A0" }} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Gender</label>
-                    <div className="flex gap-2">
-                      {["M","F"].map(g => (
-                        <button key={g} onClick={() => setForm(p=>({...p, gender:g}))}
-                          className="flex-1 py-2.5 rounded-xl text-sm font-semibold border"
-                          style={form.gender===g ? {background:"#1B4332",color:"white",borderColor:"#1B4332"} : {borderColor:"#DFC5A0",color:"#374151"}}>
-                          {g==="M"?"Male":"Female"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* DOB + DOD */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Date of Birth</label>
-                    <input type="date" value={form.dob} onChange={e => setForm(p=>({...p, dob:e.target.value}))}
-                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor:"#DFC5A0" }} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>
-                      Date of Death <span className="text-gray-400 font-normal">(if applicable)</span>
-                    </label>
-                    <input type="date" value={form.dod} onChange={e => setForm(p=>({...p, dod:e.target.value}))}
-                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor:"#DFC5A0" }} />
-                  </div>
-                </div>
-
-                {/* Gotra + Branch */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Gotra</label>
-                    <div className="relative">
-                      <select value={form.gotra} onChange={e => setForm(p=>({...p, gotra:e.target.value}))}
-                        className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none appearance-none" style={{ borderColor:"#DFC5A0" }}>
-                        {GOTRAS.map(g=><option key={g}>{g}</option>)}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Branch</label>
-                    <div className="relative">
-                      <select value={form.branch} onChange={e => setForm(p=>({...p, branch:e.target.value}))}
-                        className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none appearance-none" style={{ borderColor:"#DFC5A0" }}>
-                        {BRANCHES.map(b=><option key={b}>{b}</option>)}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Native + Occupation */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Native Place</label>
-                    <input type="text" placeholder="e.g. Kundapura, Karnataka" value={form.native}
-                      onChange={e => setForm(p=>({...p, native:e.target.value}))}
-                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor:"#DFC5A0" }} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Occupation</label>
-                    <input type="text" placeholder="e.g. Goldsmith, Engineer" value={form.occupation}
-                      onChange={e => setForm(p=>({...p, occupation:e.target.value}))}
-                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor:"#DFC5A0" }} />
-                  </div>
-                </div>
-
-                {/* Phone + Generation */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Phone</label>
-                    <input type="tel" placeholder="9876543210" value={form.phone}
-                      onChange={e => setForm(p=>({...p, phone:e.target.value.replace(/\D/g,"")}))}
-                      maxLength={10}
-                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none" style={{ borderColor:"#DFC5A0" }} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>Generation</label>
-                    <div className="flex gap-2">
-                      {[1,2,3,4,5].map(g=>(
-                        <button key={g} onClick={() => setForm(p=>({...p, generation:g}))}
-                          className="flex-1 py-2.5 rounded-xl text-sm font-semibold border"
-                          style={form.generation===g ? {background:"#1B4332",color:"white",borderColor:"#1B4332"} : {borderColor:"#DFC5A0",color:"#374151"}}>
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Parent link */}
-                {dbMembers.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>
-                      Parent / Connected to <span className="text-gray-400 font-normal">(optional)</span>
-                    </label>
-                    <div className="relative">
-                      <select value={form.parentId} onChange={e => setForm(p=>({...p, parentId:e.target.value}))}
-                        className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none appearance-none" style={{ borderColor:"#DFC5A0" }}>
-                        <option value="">— No parent selected —</option>
-                        {dbMembers.map(m => (
-                          <option key={m._id} value={m._id}>{m.name} (Gen {m.generation})</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Notes */}
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color:"#1B4332" }}>
-                    Life Notes <span className="text-gray-400 font-normal">(optional)</span>
-                  </label>
-                  <textarea rows={3} placeholder="A few words about this person's life, contributions, or memories…"
-                    value={form.notes} onChange={e => setForm(p=>({...p, notes:e.target.value}))}
-                    className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none resize-none" style={{ borderColor:"#DFC5A0" }} />
-                </div>
-
-                {saveError && (
-                  <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-2">{saveError}</p>
-                )}
-              </div>
-
-              <div className="flex gap-3 p-5 border-t shrink-0" style={{ borderColor:"#F3F4F6" }}>
-                <button onClick={handleSave} disabled={saving || !form.name.trim()}
-                  className="flex-1 py-3.5 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-60"
-                  style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
-                  {saving
-                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />&nbsp;Saving…</>
-                    : <><Plus size={16} /> Add to Family Tree</>}
-                </button>
-                <button onClick={() => setShowAdd(false)}
-                  className="px-6 py-3.5 rounded-xl font-semibold text-sm border"
-                  style={{ borderColor:"#DFC5A0", color:"#374151" }}>
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
+          <AddMemberModal
+            onClose={() => setShowAdd(false)}
+            onAdded={async () => { await loadTree(); await loadInbox(); }}
+          />
+        )}
+        {showInbox && (
+          <InboxModal
+            requests={requests}
+            invites={invites}
+            notifications={notifications}
+            onClose={() => setShowInbox(false)}
+            onRespond={respondToRequest}
+            onRespondInvites={respondToInvites}
+          />
         )}
       </AnimatePresence>
     </SidebarLayout>
+  );
+}
+
+// ── Add member ──────────────────────────────────────────────────────────────
+
+type AddMode = "search" | "invite" | "deceased";
+
+function AddMemberModal({ onClose, onAdded }: {
+  onClose: () => void;
+  onAdded: () => Promise<void>;
+}) {
+  const [relation, setRelation] = useState<Relation>("father");
+  const [mode, setMode] = useState<AddMode>("search");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<string>("");
+
+  // Search-an-account mode
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<UserPreview[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [picked, setPicked] = useState<UserPreview | null>(null);
+
+  // Placeholder / deceased mode. dob is required by the server for both.
+  const [form, setForm] = useState({
+    name: "", gender: "M", phone: "", dob: "",
+    dod: "", placeOfDeath: "", biography: "",
+  });
+
+  const search = async () => {
+    const q = query.trim();
+    if (!q) return;
+    setSearching(true);
+    setError("");
+    try {
+      // Digits are a phone number, everything else is treated as a name.
+      const isPhone = /^\d{10}$/.test(q);
+      const found = await apiGet<UserPreview[]>("/api/family-tree/search", {
+        query: isPhone ? { phone: q, limit: 10 } : { name: q, limit: 10 },
+      });
+      setResults(found);
+      if (!found.length) setError("No account matches that. You can invite them instead.");
+    } catch (err) {
+      setError(errorMessage(err, "Search failed."));
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const submit = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      const body =
+        mode === "search"
+          ? { relation, targetUserId: picked?._id }
+          : {
+              relation,
+              name: form.name.trim(),
+              gender: form.gender,
+              dob: form.dob,
+              phone: form.phone || undefined,
+              status: mode === "deceased" ? "deceased" : "alive",
+              ...(mode === "deceased" ? {
+                dod: form.dod || undefined,
+                placeOfDeath: form.placeOfDeath || undefined,
+                biography: form.biography || undefined,
+              } : {}),
+            };
+
+      const res = await apiPost<{ mode: string }>("/api/family-tree/members", body);
+      await onAdded();
+
+      // What happened next differs by mode, and saying so matters: a pending
+      // request is NOT yet in the tree.
+      setResult(
+        res.mode === "request"
+          ? "Request sent. They will appear in your tree once they accept."
+          : res.mode === "invite"
+          ? "Invitation created. They join your tree when they register with that phone number."
+          : "Added to your tree.",
+      );
+    } catch (err) {
+      setError(errorMessage(err, "Could not add that member."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const canSubmit =
+    mode === "search" ? Boolean(picked) : Boolean(form.name.trim() && form.dob);
+
+  return (
+    <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background:"rgba(0,0,0,0.5)" }}
+      initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+      onClick={onClose}>
+      <motion.div initial={{ scale:0.94, opacity:0 }} animate={{ scale:1, opacity:1 }} exit={{ scale:0.94, opacity:0 }}
+        className="rounded-2xl p-7 w-full max-w-lg overflow-y-auto"
+        style={{ background:"white", maxHeight:"90vh" }}
+        onClick={e => e.stopPropagation()}>
+
+        {result ? (
+          <div className="text-center py-4">
+            <Check size={44} className="mx-auto mb-4" style={{ color:"#1B4332" }} />
+            <h3 className="text-xl font-bold mb-2" style={{ fontFamily:"'Playfair Display', serif" }}>Done</h3>
+            <p className="text-gray-500 text-sm mb-6">{result}</p>
+            <button onClick={onClose}
+              className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white"
+              style={{ background:"#1B4332" }}>
+              Close
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xl font-bold" style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
+                Add a Family Member
+              </h3>
+              <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100"><X size={18} /></button>
+            </div>
+
+            <label className="text-sm font-semibold block mb-2" style={{ color:"#1B4332" }}>
+              They are my…
+            </label>
+            <div className="flex flex-wrap gap-2 mb-5">
+              {RELATIONS.map(r => (
+                <button key={r} onClick={() => setRelation(r)}
+                  className="px-3.5 py-1.5 rounded-full text-sm font-medium border capitalize transition-colors"
+                  style={relation === r
+                    ? { background:"#1B4332", color:"white", borderColor:"#1B4332" }
+                    : { borderColor:"#DFC5A0", color:"#374151" }}>
+                  {r}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-1 p-1 rounded-xl mb-5" style={{ background:"#EDE8DF" }}>
+              {([
+                { key:"search",   label:"Already a member" },
+                { key:"invite",   label:"Not joined yet" },
+                { key:"deceased", label:"In remembrance" },
+              ] as const).map(({ key, label }) => (
+                <button key={key} onClick={() => { setMode(key); setError(""); }}
+                  className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
+                  style={mode === key
+                    ? { background:"white", color:"#0D2B1E", boxShadow:"0 1px 4px rgba(0,0,0,0.1)" }
+                    : { color:"#6B7280" }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {mode === "search" ? (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-500">
+                  They will be asked to confirm the relationship before it appears in either tree.
+                </p>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input value={query}
+                      onChange={e => setQuery(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && search()}
+                      placeholder="Name or 10-digit phone number"
+                      className="w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl outline-none"
+                      style={{ borderColor:"#DFC5A0" }} />
+                  </div>
+                  <button onClick={search} disabled={searching || !query.trim()}
+                    className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+                    style={{ background:"#1B4332" }}>
+                    {searching ? "…" : "Search"}
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-56 overflow-y-auto">
+                  {results.map(u => (
+                    <button key={u._id} onClick={() => setPicked(u)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors"
+                      style={picked?._id === u._id
+                        ? { borderColor:"#1B4332", background:"#F0FBF4" }
+                        : { borderColor:"#DFC5A0", background:"white" }}>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white shrink-0"
+                        style={{ background:"linear-gradient(135deg,#1B4332,#2D6A4F)" }}>
+                        {initials(u.name)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate" style={{ color:"#0D2B1E" }}>{u.name}</p>
+                        <p className="text-xs text-gray-400 truncate">
+                          @{u.userName}{u.native ? ` · ${u.native}` : ""}
+                        </p>
+                      </div>
+                      {picked?._id === u._id && <Check size={16} className="ml-auto" style={{ color:"#1B4332" }} />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-500">
+                  {mode === "invite"
+                    ? "We hold their place in your tree. When they register with this phone number, they are asked to confirm and their node becomes their account."
+                    : "Added to your tree straight away — no confirmation needed."}
+                </p>
+                <div>
+                  <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Full name *</label>
+                  <input value={form.name} onChange={e => setForm(p => ({ ...p, name:e.target.value }))}
+                    className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
+                    style={{ borderColor:"#DFC5A0" }} placeholder="e.g. Ramachandra Suvarna" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Gender</label>
+                    <select value={form.gender} onChange={e => setForm(p => ({ ...p, gender:e.target.value }))}
+                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
+                      style={{ borderColor:"#DFC5A0" }}>
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Date of birth *</label>
+                    <input type="date" value={form.dob} onChange={e => setForm(p => ({ ...p, dob:e.target.value }))}
+                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
+                      style={{ borderColor:"#DFC5A0" }} />
+                  </div>
+                </div>
+                {mode === "invite" && (
+                  <div>
+                    <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>
+                      Phone <span className="text-gray-400 font-normal">— how we match them when they join</span>
+                    </label>
+                    <input value={form.phone} inputMode="numeric"
+                      onChange={e => setForm(p => ({ ...p, phone:e.target.value.replace(/\D/g,"").slice(0,10) }))}
+                      className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
+                      style={{ borderColor:"#DFC5A0" }} placeholder="9876543210" />
+                  </div>
+                )}
+                {mode === "deceased" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Date of passing</label>
+                        <input type="date" value={form.dod} onChange={e => setForm(p => ({ ...p, dod:e.target.value }))}
+                          className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
+                          style={{ borderColor:"#DFC5A0" }} />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Place</label>
+                        <input value={form.placeOfDeath} onChange={e => setForm(p => ({ ...p, placeOfDeath:e.target.value }))}
+                          className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none"
+                          style={{ borderColor:"#DFC5A0" }} placeholder="e.g. Kumta" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Remembrance</label>
+                      <textarea value={form.biography} rows={3}
+                        onChange={e => setForm(p => ({ ...p, biography:e.target.value }))}
+                        className="w-full px-4 py-2.5 text-sm border rounded-xl outline-none resize-none"
+                        style={{ borderColor:"#DFC5A0" }}
+                        placeholder="A few lines about their life" />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {error && <p className="text-sm text-red-600 mt-4">{error}</p>}
+
+            <button onClick={submit} disabled={saving || !canSubmit}
+              className="w-full mt-5 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+              style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+              {saving
+                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
+                : mode === "search" ? "Send request"
+                : mode === "invite" ? "Create invitation"
+                : "Add to tree"}
+            </button>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ── Requests / invites / notifications ──────────────────────────────────────
+
+function InboxModal({ requests, invites, notifications, onClose, onRespond, onRespondInvites }: {
+  requests: PendingRequest[];
+  invites: Invite[];
+  notifications: FamilyNotification[];
+  onClose: () => void;
+  onRespond: (id: string, action: "accept" | "decline") => Promise<void>;
+  onRespondInvites: (action: "accept" | "decline") => Promise<void>;
+}) {
+  return (
+    <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background:"rgba(0,0,0,0.5)" }}
+      initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+      onClick={onClose}>
+      <motion.div initial={{ scale:0.94, opacity:0 }} animate={{ scale:1, opacity:1 }} exit={{ scale:0.94, opacity:0 }}
+        className="rounded-2xl p-7 w-full max-w-lg overflow-y-auto"
+        style={{ background:"white", maxHeight:"85vh" }}
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-xl font-bold" style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
+            Family Requests
+          </h3>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100"><X size={18} /></button>
+        </div>
+
+        {invites.length > 0 && (
+          <section className="mb-6">
+            <h4 className="text-xs font-bold tracking-widest text-gray-400 mb-3">INVITATIONS TO YOU</h4>
+            <div className="rounded-xl border p-4" style={{ background:"#FBF6EE", borderColor:"#DFC5A0" }}>
+              {invites.map(inv => (
+                <p key={inv.relationshipId} className="text-sm mb-2" style={{ color:"#6B4226" }}>
+                  {inv.message}
+                </p>
+              ))}
+              <div className="flex gap-2 mt-3">
+                <button onClick={() => onRespondInvites("accept")}
+                  className="flex-1 py-2 rounded-xl text-sm font-semibold text-white" style={{ background:"#1B4332" }}>
+                  Accept all
+                </button>
+                <button onClick={() => onRespondInvites("decline")}
+                  className="flex-1 py-2 rounded-xl text-sm font-semibold border"
+                  style={{ borderColor:"#DFC5A0", color:"#6B4226" }}>
+                  Decline
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="mb-6">
+          <h4 className="text-xs font-bold tracking-widest text-gray-400 mb-3">AWAITING YOUR APPROVAL</h4>
+          {requests.length === 0 ? (
+            <p className="text-sm text-gray-400">Nothing waiting on you.</p>
+          ) : (
+            <div className="space-y-2">
+              {requests.map(req => (
+                <div key={req._id} className="rounded-xl border p-4" style={{ borderColor:"#DFC5A0" }}>
+                  <p className="text-sm mb-3" style={{ color:"#0D2B1E" }}>{req.message}</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => onRespond(req._id, "accept")}
+                      className="flex-1 py-2 rounded-xl text-sm font-semibold text-white" style={{ background:"#1B4332" }}>
+                      Accept
+                    </button>
+                    <button onClick={() => onRespond(req._id, "decline")}
+                      className="flex-1 py-2 rounded-xl text-sm font-semibold border"
+                      style={{ borderColor:"#DFC5A0", color:"#6B7280" }}>
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <h4 className="text-xs font-bold tracking-widest text-gray-400 mb-3">RECENT</h4>
+          {notifications.length === 0 ? (
+            <p className="text-sm text-gray-400">No activity yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {notifications.slice(0, 10).map(n => (
+                <div key={n._id} className="flex items-start gap-2.5 text-sm text-gray-600">
+                  <Clock size={13} className="mt-1 shrink-0 text-gray-300" />
+                  <span>{n.message}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </motion.div>
+    </motion.div>
   );
 }

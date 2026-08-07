@@ -4,8 +4,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { TreePine, Heart, Users, Shield, Calendar, ArrowRight, TrendingUp, MapPin, Navigation } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
+import { apiGet } from "@/lib/api";
 import { getUser, type VVUser } from "@/lib/auth";
-import { DASHBOARD_ACTIVITY, WELFARE_CAMPAIGNS, MATRIMONIAL_CANDIDATES } from "@/lib/data";
+import { DASHBOARD_ACTIVITY, MATRIMONIAL_CANDIDATES } from "@/lib/data";
 
 interface DbStats {
   totalMembers: number; pendingVerifications: number;
@@ -15,6 +16,10 @@ interface DbStats {
 interface ActivityItem {
   id: string; type: string; user: string;
   action: string; detail: string; time: string; photo: string;
+}
+interface DbCampaign {
+  id: string; title: string; goal: number; raised: number;
+  daysLeft: number | null; image: string;
 }
 
 function StatCard({
@@ -96,17 +101,17 @@ export default function DashboardPage() {
   const [user, setUser]       = useState<VVUser | null>(null);
   const [dbStats, setDbStats] = useState<DbStats | null>(null);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [campaigns, setCampaigns] = useState<DbCampaign[]>([]);
 
   useEffect(() => {
     setUser(getUser());
-    // Fetch real stats and activity in parallel
-    Promise.all([
-      fetch("/api/stats").then(r => r.ok ? r.json() : null),
-      fetch("/api/activity").then(r => r.ok ? r.json() : []),
-    ]).then(([stats, acts]) => {
-      if (stats) setDbStats(stats);
-      if (acts?.length) setActivity(acts);
-    }).catch(() => {});
+    // Counters and the feed are independent — one failing should not blank the
+    // other, so they settle separately rather than through Promise.all.
+    apiGet<DbStats>("/api/stats").then(setDbStats).catch(() => {});
+    apiGet<ActivityItem[]>("/api/activity")
+      .then(acts => { if (acts?.length) setActivity(acts); })
+      .catch(() => {});
+    apiGet<DbCampaign[]>("/api/welfare/campaigns").then(setCampaigns).catch(() => {});
   }, []);
 
   const statData = dbStats ? [
@@ -321,7 +326,7 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="space-y-3">
-              {WELFARE_CAMPAIGNS.slice(0, 2).map((c) => {
+              {campaigns.slice(0, 2).map((c) => {
                 const pct = Math.round((c.raised / c.goal) * 100);
                 return (
                   <div
@@ -343,7 +348,7 @@ export default function DashboardPage() {
                         />
                       </div>
                       <p className="text-xs text-gray-400 mt-1">
-                        {pct}% · {c.daysLeft} days left
+                        {pct}% · {c.daysLeft === null ? "ongoing" : `${c.daysLeft} days left`}
                       </p>
                     </div>
                     <Link

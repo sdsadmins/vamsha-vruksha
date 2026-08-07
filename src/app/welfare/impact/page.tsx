@@ -1,35 +1,31 @@
 "use client";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Download, Share2, TrendingUp, Users, Heart, Star, ArrowRight } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
+import { apiGet } from "@/lib/api";
+
+/** GET /api/welfare/impact — real totals aggregated from the donations. */
+interface ImpactReport {
+  totalRaised: number;
+  donationCount: number;
+  donorCount: number;
+  allocation: { category: string; amount: number; pct: number }[];
+  topDonors: { name: string; amount: number }[];
+  upcomingGoals: { id: string; title: string; goal: number; raised: number; remaining: number }[];
+}
+
+/** Palette cycled through the allocation slices, whatever the categories are. */
+const SLICE_COLORS = ["#1B4332", "#2D6A4F", "#8B5E3C", "#C4823A", "#52B788", "#6B4226"];
+
+const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
 const PX = (id: number) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop`;
 
-const GUARDIAN_DONORS = [
-  { name: "Shri Narayanarao Shet",   amount: "₹90,000",  role: "Elder Committee Head",    photo: PX(17815020) },
-  { name: "Dr. Suma Rao",            amount: "₹51,000",  role: "Samaj Life Patron",        photo: PX(11138457) },
-  { name: "Vivek Kamath",            amount: "₹40,000",  role: "IT Professionals Chapter", photo: PX(2601464)  },
-  { name: "Rajesh Pai",              amount: "₹35,000",  role: "Entrepreneur, Bengaluru",  photo: PX(5746790)  },
-];
-
-const ALLOCATION = [
-  { label: "Temple & Heritage",  pct: 40, color: "#1B4332" },
-  { label: "Education",          pct: 30, color: "#2D6A4F" },
-  { label: "Health & Welfare",   pct: 15, color: "#8B5E3C" },
-  { label: "Cultural Events",    pct: 15, color: "#C4823A" },
-];
-
-const UPCOMING_GOALS = [
-  { emoji: "🗃️", title: "Digital Archive Phase 2",   target: "₹8,00,000",  progress: 62 },
-  { emoji: "🏛️", title: "Regional Study Centre",      target: "₹15,00,000", progress: 28 },
-  { emoji: "🌳", title: "Sacred Forest Restoration",  target: "₹5,00,000",  progress: 44 },
-];
-
 // Simple CSS donut chart using conic-gradient
-function DonutChart() {
-  const segments = ALLOCATION;
+function DonutChart({ segments }: { segments: { label: string; pct: number; color: string }[] }) {
   let cumulative = 0;
   const gradientStops = segments.map(s => {
     const start = cumulative;
@@ -49,7 +45,7 @@ function DonutChart() {
         </div>
       </div>
       <div className="space-y-2">
-        {ALLOCATION.map(a => (
+        {segments.map(a => (
           <div key={a.label} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: a.color }} />
             <span className="text-sm text-gray-600">{a.label}</span>
@@ -62,6 +58,21 @@ function DonutChart() {
 }
 
 export default function ImpactReportPage() {
+  const [report, setReport] = useState<ImpactReport | null>(null);
+
+  useEffect(() => {
+    apiGet<ImpactReport>("/api/welfare/impact").then(setReport).catch(() => {});
+  }, []);
+
+  const segments = useMemo(
+    () => (report?.allocation ?? []).map((a, i) => ({
+      label: a.category,
+      pct: a.pct,
+      color: SLICE_COLORS[i % SLICE_COLORS.length],
+    })),
+    [report],
+  );
+
   return (
     <SidebarLayout title="Impact Report">
       {/* Header */}
@@ -92,9 +103,12 @@ export default function ImpactReportPage() {
       {/* Hero stats */}
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
         {[
-          { icon: TrendingUp, label: "Total Funds Raised", val: "₹12,85,000", sub: "+40% from last year", color: "#1B4332" },
-          { icon: Users,      label: "Souls Touched",      val: "1,240",       sub: "+31 Beneficiaries added", color: "#2D6A4F" },
-          { icon: Star,       label: "Active Initiatives", val: "12",          sub: "100% Transparency",       color: "#8B5E3C" },
+          { icon: TrendingUp, label: "Total Funds Raised", val: report ? inr(report.totalRaised) : "—",
+            sub: report ? `Across ${report.donationCount} contribution${report.donationCount === 1 ? "" : "s"}` : "Loading…", color: "#1B4332" },
+          { icon: Users,      label: "Contributors",       val: report ? String(report.donorCount) : "—",
+            sub: "Named donors", color: "#2D6A4F" },
+          { icon: Star,       label: "Active Initiatives", val: report ? String(report.upcomingGoals.length) : "—",
+            sub: "Campaigns still open", color: "#8B5E3C" },
         ].map(({ icon: Icon, label, val, sub, color }) => (
           <motion.div key={label}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -119,7 +133,11 @@ export default function ImpactReportPage() {
               style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
               Fund Allocation Breakdown
             </h3>
-            <DonutChart />
+            {segments.length > 0
+              ? <DonutChart segments={segments} />
+              : <p className="text-sm text-gray-400 py-8 text-center">
+                  No contributions recorded yet — the split appears here once donations come in.
+                </p>}
             <p className="text-xs text-gray-400 mt-4 italic border-t pt-4" style={{ borderColor: "#F3F4F6" }}>
               &ldquo;Every rupee documented. Every decision transparent.&rdquo; — Daivajna Audit Committee
             </p>
@@ -136,21 +154,26 @@ export default function ImpactReportPage() {
               </span>
             </div>
             <div className="divide-y" style={{ borderColor: "#F9F9F9" }}>
-              {GUARDIAN_DONORS.map((d, i) => (
+              {(report?.topDonors ?? []).map((d, i) => (
                 <motion.div key={d.name}
                   initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
                   className="flex items-center gap-4 p-4">
-                  <div className="w-11 h-11 rounded-full overflow-hidden border-2 shrink-0"
-                    style={{ borderColor: "#C4823A" }}>
-                    <img src={d.photo} alt={d.name} className="w-full h-full object-cover" />
+                  <div className="w-11 h-11 rounded-full shrink-0 flex items-center justify-center font-bold text-white"
+                    style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+                    {d.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm" style={{ color: "#0D2B1E" }}>{d.name}</p>
-                    <p className="text-xs text-gray-400">{d.role}</p>
+                    <p className="font-semibold text-sm truncate" style={{ color: "#0D2B1E" }}>{d.name}</p>
+                    <p className="text-xs text-gray-400">Contributor</p>
                   </div>
-                  <span className="text-sm font-bold" style={{ color: "#1B4332" }}>{d.amount}</span>
+                  <span className="text-sm font-bold" style={{ color: "#1B4332" }}>{inr(d.amount)}</span>
                 </motion.div>
               ))}
+              {report && report.topDonors.length === 0 && (
+                <p className="text-sm text-gray-400 p-4">
+                  No named contributions yet.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -197,24 +220,30 @@ export default function ImpactReportPage() {
               Upcoming Heritage Goals
             </h3>
             <div className="space-y-4">
-              {UPCOMING_GOALS.map(g => (
-                <div key={g.title}>
-                  <div className="flex items-center justify-between text-sm mb-1.5">
-                    <span className="flex items-center gap-2 font-semibold" style={{ color: "#0D2B1E" }}>
-                      {g.emoji} {g.title}
-                    </span>
-                    <span className="text-xs text-gray-400">{g.target}</span>
+              {(report?.upcomingGoals ?? []).map(g => {
+                const progress = g.goal ? Math.round((g.raised / g.goal) * 100) : 0;
+                return (
+                  <div key={g.id}>
+                    <div className="flex items-center justify-between text-sm mb-1.5">
+                      <span className="font-semibold" style={{ color: "#0D2B1E" }}>{g.title}</span>
+                      <span className="text-xs text-gray-400">{inr(g.goal)}</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full">
+                      <motion.div
+                        initial={{ width: 0 }} animate={{ width: `${progress}%` }}
+                        transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
+                        className="h-full rounded-full"
+                        style={{ background: "linear-gradient(90deg, #1B4332, #52B788)" }} />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {progress}% funded · {inr(g.remaining)} to go
+                    </p>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full">
-                    <motion.div
-                      initial={{ width: 0 }} animate={{ width: `${g.progress}%` }}
-                      transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
-                      className="h-full rounded-full"
-                      style={{ background: "linear-gradient(90deg, #1B4332, #52B788)" }} />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">{g.progress}% funded</p>
-                </div>
-              ))}
+                );
+              })}
+              {report && report.upcomingGoals.length === 0 && (
+                <p className="text-sm text-gray-400">Every campaign has reached its goal.</p>
+              )}
             </div>
             <Link href="/welfare"
               className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border"

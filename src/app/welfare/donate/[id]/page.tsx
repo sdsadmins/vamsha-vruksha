@@ -5,8 +5,21 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, CheckCircle, Shield, Award, CreditCard, Smartphone, Building, Heart } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
-import { WELFARE_CAMPAIGNS } from "@/lib/data";
+import { apiGet, apiPost, errorMessage } from "@/lib/api";
 import { getUser } from "@/lib/auth";
+
+interface Campaign {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  goal: number;
+  raised: number;
+  daysLeft: number | null;
+  backers: number;
+  image: string;
+  color: string;
+}
 
 const PRESET_AMOUNTS = [500, 2000, 5000, 10000];
 
@@ -23,7 +36,9 @@ type DonationType = "onetime" | "monthly";
 export default function DonatePage() {
   const { id } = useParams();
   const router = useRouter();
-  const campaign = WELFARE_CAMPAIGNS.find(c => c.id === id) ?? WELFARE_CAMPAIGNS[0];
+  const campaignId = Array.isArray(id) ? id[0] : id ?? "";
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [campaignError, setCampaignError] = useState("");
 
   const [donationType, setDonationType] = useState<DonationType>("onetime");
   const [amount, setAmount] = useState(2000);
@@ -35,15 +50,40 @@ export default function DonatePage() {
   const [submitting, setSubmitting] = useState(false);
   const [donorName, setDonorName] = useState("");
   const [donorPhone, setDonorPhone] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
     const user = getUser();
     if (user) { setDonorName(user.name); setDonorPhone(user.phone); }
   }, []);
 
+  useEffect(() => {
+    if (!campaignId) return;
+    apiGet<Campaign>(`/api/welfare/campaigns/${campaignId}`)
+      .then(setCampaign)
+      .catch(err => setCampaignError(errorMessage(err, "Campaign not found.")));
+  }, [campaignId]);
+
   const finalAmount = customAmount ? parseInt(customAmount) || 0 : amount;
-  const pct = Math.round((campaign.raised / campaign.goal) * 100);
-  const impactMsg = IMPACT_MESSAGES[finalAmount] ?? `Your ₹${finalAmount.toLocaleString("en-IN")} goes directly to ${campaign.title}.`;
+  const pct = campaign ? Math.round((campaign.raised / campaign.goal) * 100) : 0;
+  const impactMsg = IMPACT_MESSAGES[finalAmount]
+    ?? `Your ₹${finalAmount.toLocaleString("en-IN")} goes directly to ${campaign?.title ?? "the welfare fund"}.`;
+
+  if (!campaign) return (
+    <SidebarLayout title="Contribute">
+      <div className="flex items-center justify-center min-h-[60vh]">
+        {campaignError
+          ? <div className="text-center">
+              <p className="text-gray-600 mb-4">{campaignError}</p>
+              <Link href="/welfare" className="text-sm font-semibold" style={{ color: "#1B4332" }}>
+                ← Back to campaigns
+              </Link>
+            </div>
+          : <div className="w-8 h-8 border-3 rounded-full animate-spin"
+              style={{ borderColor: "#DFC5A0", borderTopColor: "#1B4332" }} />}
+      </div>
+    </SidebarLayout>
+  );
 
   if (submitted) return (
     <SidebarLayout title="Contribution Confirmed">
@@ -113,14 +153,14 @@ export default function DonatePage() {
               <div className="mt-4">
                 <div className="flex justify-between text-xs mb-1">
                   <span className="font-semibold" style={{ color: "#1B4332" }}>
-                    ₹{(campaign.raised / 100).toLocaleString("en-IN")} raised
+                    ₹{campaign.raised.toLocaleString("en-IN")} raised
                   </span>
                   <span className="text-gray-400">{pct}%</span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full">
                   <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "linear-gradient(90deg, #1B4332, #52B788)" }} />
                 </div>
-                <p className="text-xs text-gray-400 mt-1">{campaign.daysLeft} days left · {campaign.backers} contributors</p>
+                <p className="text-xs text-gray-400 mt-1">{campaign.daysLeft === null ? "Ongoing" : `${campaign.daysLeft} days left`} · {campaign.backers} contributors</p>
               </div>
             </div>
           </div>
@@ -250,27 +290,29 @@ export default function DonatePage() {
             {/* Submit */}
             <button
               onClick={async () => {
-                if (finalAmount === 0) return;
+                if (finalAmount === 0 || !campaign) return;
                 setSubmitting(true);
+                setSubmitError("");
                 try {
-                  await fetch("/api/donations", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      campaignId: campaign.id,
-                      campaignTitle: campaign.title,
-                      amount: finalAmount,
-                      donorName,
-                      donorPhone,
-                      message,
-                      payMethod,
-                      wantsCert,
-                      donationType,
-                    }),
+                  await apiPost("/api/welfare/donations", {
+                    campaignId: campaign.id,
+                    campaignTitle: campaign.title,
+                    amount: finalAmount,
+                    donorName,
+                    donorPhone,
+                    message,
+                    payMethod,
+                    wantsCert,
+                    donationType,
                   });
-                } catch { /* ignore — still show success */ }
-                setSubmitting(false);
-                setSubmitted(true);
+                  setSubmitted(true);
+                } catch (err) {
+                  // Previously this showed the thank-you screen even when the
+                  // donation was never recorded.
+                  setSubmitError(errorMessage(err, "Could not record your donation."));
+                } finally {
+                  setSubmitting(false);
+                }
               }}
               disabled={finalAmount === 0 || submitting}
               className="w-full py-4 rounded-xl font-bold text-white text-base flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 disabled:opacity-50"
@@ -279,6 +321,9 @@ export default function DonatePage() {
                 ? <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing…</>
                 : <><Heart size={18} fill="white" /> Contribute ₹{finalAmount ? finalAmount.toLocaleString("en-IN") : "—"}</>}
             </button>
+            {submitError && (
+              <p className="text-sm text-center mt-3" style={{ color: "#DC2626" }}>{submitError}</p>
+            )}
             <p className="text-xs text-center text-gray-400 mt-3">
               Secured by Daivajna Samaja Samiti. By contributing, you agree to the{" "}
               <span className="underline cursor-pointer">Community Welfare Policy</span>.

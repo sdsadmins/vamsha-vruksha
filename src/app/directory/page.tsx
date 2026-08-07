@@ -5,10 +5,29 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Search, MapPin, Users, Navigation, Filter, UserPlus } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
+import { apiGet } from "@/lib/api";
 import { COMMUNITY_MEMBERS } from "@/lib/data";
 
+/** A row from GET /api/user/directory — deliberately PII-light. */
 interface DbUser {
-  id: string; name: string; phone: string; gotra: string; native: string; role: string;
+  id: string;
+  samajId: string;
+  userName: string;
+  name: string;
+  gotra: string;
+  native: string;
+  occupation: string;
+  profileUrl: string;
+  verified: boolean;
+  role: string;
+  isPurohit: boolean;
+}
+
+interface DirectoryResponse {
+  count: number;
+  page: number;
+  limit: number;
+  users: DbUser[];
 }
 
 const MEMBER_COORDS: Record<string, { lat: number; lng: number }> = {
@@ -71,16 +90,20 @@ export default function DirectoryPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [dbUsers, setDbUsers]   = useState<DbUser[]>([]);
 
+  // The real member directory, searched server-side. Debounced so typing does
+  // not fire a request per keystroke.
   useEffect(() => {
-    fetch("/api/verifications")          // reuse — returns all unverified users
-      .then(r => r.ok ? r.json() : [])
-      .then(setDbUsers)
-      .catch(() => {});
-    // Also fetch all verified users from stats endpoint shape
-    fetch("/api/activity")
-      .then(r => r.ok ? r.json() : [])
-      .catch(() => {});
-  }, []);
+    const controller = new AbortController();
+    const t = setTimeout(() => {
+      apiGet<DirectoryResponse>("/api/user/directory", {
+        query: { q: search.trim() || undefined, limit: 24, page: 1 },
+        signal: controller.signal,
+      })
+        .then(res => setDbUsers(res.users ?? []))
+        .catch(() => {});
+    }, 300);
+    return () => { clearTimeout(t); controller.abort(); };
+  }, [search]);
 
   const filtered = useMemo(() => COMMUNITY_MEMBERS.filter(m => {
     const matchBranch  = branch === "All" || m.branch === branch;
@@ -246,7 +269,7 @@ export default function DirectoryPage() {
           <h3 className="text-base font-bold mb-4 flex items-center gap-2"
             style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
             <UserPlus size={16} style={{ color:"#8B5E3C" }} />
-            Recently Registered Members ({dbUsers.length})
+            Registered Members ({dbUsers.length})
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {dbUsers.map((u, i) => (
@@ -268,8 +291,10 @@ export default function DirectoryPage() {
                   </div>
                 </div>
                 <span className="mt-2 text-xs px-2 py-0.5 rounded-full inline-block"
-                  style={{ background:"#FEF3C7", color:"#D97706" }}>
-                  Pending Verification
+                  style={u.verified
+                    ? { background:"#D1FAE5", color:"#065F46" }
+                    : { background:"#FEF3C7", color:"#D97706" }}>
+                  {u.verified ? "Verified" : "Pending Verification"}
                 </span>
               </motion.div>
             ))}

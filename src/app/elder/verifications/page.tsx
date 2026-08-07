@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Search, CheckCircle, AlertTriangle, Clock, Shield, TrendingUp, ChevronRight, UserCheck, UserX, Image as ImageIcon, FileText } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
+import { apiGet, apiPatch, errorMessage } from "@/lib/api";
 import { VERIFICATION_REQUESTS } from "@/lib/data";
 
 interface PendingUser {
@@ -28,25 +29,28 @@ export default function VerificationsPage() {
   const [approving, setApproving]   = useState<string | null>(null);
   const [acted, setActed]           = useState<Record<string, "approved"|"rejected">>({});
 
+  const [loadError, setLoadError] = useState("");
+
   useEffect(() => {
-    fetch("/api/verifications")
-      .then(r => r.ok ? r.json() : [])
+    apiGet<PendingUser[]>("/api/admin/verifications")
       .then(setDbPending)
-      .catch(() => {});
+      .catch(err => setLoadError(errorMessage(err, "Could not load the queue.")));
   }, []);
 
   const handleAction = async (id: string, action: "approve"|"reject") => {
     setApproving(id);
+    setLoadError("");
     try {
-      await fetch("/api/verifications", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action }),
-      });
+      await apiPatch(`/api/admin/verifications/${id}`, { action });
       setActed(prev => ({ ...prev, [id]: action === "approve" ? "approved" : "rejected" }));
       setDbPending(prev => prev.filter(u => u.id !== id));
-    } catch { /* ignore */ }
-    setApproving(null);
+    } catch (err) {
+      // The old page swallowed this and removed the row anyway, so a failed
+      // approval looked like a successful one.
+      setLoadError(errorMessage(err, "Could not record that decision."));
+    } finally {
+      setApproving(null);
+    }
   };
 
   // Static fallback filtered
@@ -61,6 +65,13 @@ export default function VerificationsPage() {
 
   return (
     <SidebarLayout title="Elder Verification Queue" requiredRole="elder">
+      {loadError && (
+        <div className="mb-4 rounded-xl border px-4 py-3 text-sm"
+          style={{ background: "#FEE2E2", borderColor: "#FCA5A5", color: "#991B1B" }}>
+          {loadError}
+        </div>
+      )}
+
       {/* Velocity + Trust Level header */}
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
         {/* Verification Velocity */}

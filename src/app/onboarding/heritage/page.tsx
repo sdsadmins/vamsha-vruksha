@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Upload } from "lucide-react";
-import { getUser, saveUser } from "@/lib/auth";
+import { apiPatch, errorMessage } from "@/lib/api";
+import { getUser, mergeUser } from "@/lib/auth";
 
 export default function HeritagePage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function HeritagePage() {
   const [bio, setBio] = useState("");
   const [matrimonial, setMatrimonial] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     const u = getUser();
@@ -105,6 +107,13 @@ export default function HeritagePage() {
           </div>
         </div>
 
+        {saveError && (
+          <p className="mt-6 max-w-2xl rounded-xl border px-4 py-3 text-sm"
+            style={{ background: "#FEE2E2", borderColor: "#FCA5A5", color: "#991B1B" }}>
+            {saveError}
+          </p>
+        )}
+
         <div className="flex gap-3 mt-8 max-w-2xl">
           <button onClick={() => router.push("/onboarding/lineage")} className="px-6 py-3 rounded-xl border text-sm" style={{borderColor: "#E5DDD0"}}>← Back to Lineage</button>
           <button
@@ -112,18 +121,17 @@ export default function HeritagePage() {
             onClick={async () => {
               setSaving(true);
               try {
-                const u = getUser();
-                if (u?.phone) {
-                  await fetch("/api/auth/profile", {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ phone: u.phone, gotra, native, bio, matrimonialOptIn: matrimonial }),
-                  });
-                  saveUser({ ...u, gotra, native });
-                }
-              } catch { /* ignore */ }
-              setSaving(false);
-              router.push("/dashboard");
+                // Identity comes from the token now — no phone in the body.
+                await apiPatch("/api/user/profile", {
+                  gotra, native, bio, matrimonialOptIn: matrimonial,
+                });
+                mergeUser({ gotra, native, bio, matrimonialOptIn: matrimonial });
+                router.push("/dashboard");
+              } catch (err) {
+                setSaveError(errorMessage(err, "Could not save your profile."));
+              } finally {
+                setSaving(false);
+              }
             }}
             className="flex-1 py-4 text-white rounded-xl font-semibold disabled:opacity-60"
             style={{backgroundColor: "#1B4332"}}

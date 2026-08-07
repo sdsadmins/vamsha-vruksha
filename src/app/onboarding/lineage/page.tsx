@@ -2,14 +2,21 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, GitBranch, Search, CheckCircle } from "lucide-react";
-
-const STATIC_ANCESTORS = [
-  { id: "1", name: "Rameshwar Rao Revankar", location: "Puttur, Kumta · Kashyap Gotra", nominator: "Nominated by 3 Existing Members", avatar: "RR", gotra: "Kashyap" },
-  { id: "2", name: "Vinayak Gokarnakar Lineage", location: "Kumta, Karnataka · Bharadwaja Gotra", nominator: "Nominated by 2 Existing Members", avatar: "VG", gotra: "Bharadwaja" },
-];
+import { apiGet } from "@/lib/api";
 
 interface Ancestor {
   id: string; name: string; location: string; nominator: string; avatar: string; gotra: string;
+}
+
+interface DirectoryResponse {
+  users: {
+    id: string;
+    name: string;
+    userName: string;
+    gotra: string;
+    native: string;
+    verified: boolean;
+  }[];
 }
 
 export default function LineagePage() {
@@ -19,23 +26,33 @@ export default function LineagePage() {
   const [dbMembers, setDbMembers] = useState<Ancestor[]>([]);
   const [newRoot, setNewRoot] = useState(false);
 
+  // Registered members, searched server-side, so a new joiner can find the
+  // relatives already on the platform rather than scrolling a placeholder list.
   useEffect(() => {
-    fetch("/api/family")
-      .then(r => r.ok ? r.json() : [])
-      .then((members: { _id: string; name: string; gotra?: string; native?: string }[]) => {
-        setDbMembers(members.map(m => ({
-          id: m._id,
-          name: m.name,
-          location: m.native || "Karnataka",
-          nominator: `${m.gotra || ""} Gotra · DB Member`,
-          avatar: m.name.slice(0, 2).toUpperCase(),
-          gotra: m.gotra || "",
-        })));
+    const controller = new AbortController();
+    const t = setTimeout(() => {
+      apiGet<DirectoryResponse>("/api/user/directory", {
+        query: { q: query.trim() || undefined, limit: 20 },
+        signal: controller.signal,
       })
-      .catch(() => {});
-  }, []);
+        .then(res => {
+          setDbMembers((res.users ?? []).map(m => ({
+            id: m.id,
+            name: m.name,
+            location: m.native || "Karnataka",
+            nominator: [m.gotra ? `${m.gotra} Gotra` : "", m.verified ? "Verified member" : "Member"]
+              .filter(Boolean)
+              .join(" · "),
+            avatar: m.name.slice(0, 2).toUpperCase(),
+            gotra: m.gotra || "",
+          })));
+        })
+        .catch(() => {});
+    }, 300);
+    return () => { clearTimeout(t); controller.abort(); };
+  }, [query]);
 
-  const allAncestors = useMemo(() => [...dbMembers, ...STATIC_ANCESTORS], [dbMembers]);
+  const allAncestors = dbMembers;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

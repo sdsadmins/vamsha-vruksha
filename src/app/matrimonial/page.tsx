@@ -4,16 +4,38 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Shield, Search, X, CheckCircle } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
-import { MATRIMONIAL_CANDIDATES } from "@/lib/data";
+import { ApiError, apiGet, apiPost, apiPut, errorMessage } from "@/lib/api";
 
+/** A candidate card from GET /api/matrimonial. Identity is read live from the
+ * member's account, so `name`/`gotra`/`photo` are never stale copies. */
 interface DbProfile {
-  _id: string; name: string; gender: string; age?: number; gotra: string;
-  location: string; education: string; company: string; phone: string;
-  verified: boolean; photo: string; familyType: string; height: string;
-  status: string;
+  id: string;
+  userId: string;
+  name: string;
+  gender: string;
+  age: number;
+  gotra: string;
+  location: string;
+  occupation: string;
+  education: string;
+  company: string;
+  photo: string;
+  verified: boolean;
+  familyType: string;
+  height: string;
+  match?: { score: number } | null;
 }
 
-const GOTRAS = ["Kashyap","Bharadwaja","Vasishtha","Atreya","Kaundinya","Vishwamitra","Gautama"];
+interface BrowseResponse { count: number; profiles: DbProfile[] }
+
+/** GET /api/matrimonial/eligibility — why a member can or cannot list. */
+interface Eligibility {
+  eligible: boolean;
+  profileComplete: boolean;
+  status: string;
+  reasons: string[];
+  missing: { key: string; label: string }[];
+}
 
 export default function MatrimonialPage() {
   const router = useRouter();
@@ -24,40 +46,51 @@ export default function MatrimonialPage() {
   const [submitting, setSubmitting] = useState(false);
   const [dbProfiles, setDbProfiles] = useState<DbProfile[]>([]);
 
-  // Register form state
+  const [loadError, setLoadError]     = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [eligibility, setEligibility] = useState<Eligibility | null>(null);
+  const [blocked, setBlocked]         = useState(false);
+
+  // Only the fields the account does not already hold.
   const [regForm, setRegForm] = useState({
-    name: "", gender: "Bride", gotra: "Kashyap", phone: "", elderRef: "",
-    age: "", education: "", company: "", location: "Bengaluru",
+    education: "", company: "", designation: "", income: "",
+    heightCm: "", familyType: "Nuclear", about: "",
   });
 
   useEffect(() => {
-    fetch("/api/matrimonial")
-      .then(r => r.ok ? r.json() : [])
-      .then(setDbProfiles)
+    apiGet<BrowseResponse>("/api/matrimonial")
+      .then(res => { setDbProfiles(res.profiles ?? []); setBlocked(false); })
+      .catch(err => {
+        // The hub is reciprocal: you can browse once your own profile is
+        // complete. A 403 is that rule, not a failure — say so rather than
+        // showing a red error box.
+        if (err instanceof ApiError && err.status === 403) setBlocked(true);
+        else setLoadError(errorMessage(err, "Could not load profiles."));
+      });
+    apiGet<Eligibility>("/api/matrimonial/eligibility")
+      .then(setEligibility)
       .catch(() => {});
   }, []);
 
   const FILTERS = ["All","Bride","Groom","Bengaluru","Mangaluru","Kashyap Gotra","Bharadwaja Gotra"];
 
-  // Combine DB profiles with static ones (DB first)
-  const allCandidates = useMemo(() => {
-    const dbMapped = dbProfiles.map(p => ({
-      id: p._id,
-      name: p.name,
-      gender: p.gender === "Bride" ? "F" : "M",
-      age: p.age ?? 0,
-      gotra: p.gotra,
-      location: p.location,
-      education: p.education || "Details pending",
-      company: p.company || "Details pending",
-      photo: p.photo || "",
-      verified: p.verified,
-      familyType: p.familyType || "Nuclear",
-      height: p.height || "—",
-      fromDb: true,
-    }));
-    return [...dbMapped, ...MATRIMONIAL_CANDIDATES];
-  }, [dbProfiles]);
+  // Approved profiles only — the server decides who is visible, and sample
+  // candidates are no longer mixed in with real members.
+  const allCandidates = useMemo(() => dbProfiles.map(p => ({
+    id: p.id,
+    name: p.name,
+    gender: p.gender,
+    age: p.age ?? 0,
+    gotra: p.gotra,
+    location: p.location || "—",
+    education: p.education || "Details pending",
+    company: p.company || p.occupation || "Details pending",
+    photo: p.photo || "",
+    verified: p.verified,
+    familyType: p.familyType || "—",
+    height: p.height || "—",
+    fromDb: true,
+  })), [dbProfiles]);
 
   const filtered = useMemo(() => {
     return allCandidates.filter((c) => {
@@ -80,40 +113,77 @@ export default function MatrimonialPage() {
     });
   }, [allCandidates, activeFilter, searchQuery]);
 
+  /**
+   * List my own profile. A member can only ever create their own — name, age,
+   * gotra and location come from their account, so the form asks for the parts
+   * the account does not already know. Saving and submitting for review are two
+   * calls: the draft is editable until it is submitted.
+   */
   const handleRegisterSubmit = async () => {
-    if (!regForm.name || !regForm.phone) return;
     setSubmitting(true);
+    setSubmitError("");
     try {
-      const res = await fetch("/api/matrimonial", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: regForm.name,
-          gender: regForm.gender,
-          age: regForm.age ? parseInt(regForm.age) : null,
-          gotra: regForm.gotra,
-          location: regForm.location,
-          education: regForm.education,
-          company: regForm.company,
-          phone: regForm.phone,
-        }),
+      await apiPut("/api/matrimonial/me", {
+        education: regForm.education || undefined,
+        company: regForm.company || undefined,
+        designation: regForm.designation || undefined,
+        income: regForm.income || undefined,
+        heightCm: regForm.heightCm ? Number(regForm.heightCm) : undefined,
+        familyType: regForm.familyType || undefined,
+        about: regForm.about || undefined,
       });
-      if (res.ok) {
-        setRegisterSuccess(true);
-        // Refresh DB profiles
-        fetch("/api/matrimonial").then(r => r.ok ? r.json() : []).then(setDbProfiles).catch(() => {});
-        setTimeout(() => {
-          setShowRegisterModal(false);
-          setRegisterSuccess(false);
-          setRegForm({ name:"", gender:"Bride", gotra:"Kashyap", phone:"", elderRef:"", age:"", education:"", company:"", location:"Bengaluru" });
-        }, 2200);
-      }
-    } catch { /* ignore */ }
-    setSubmitting(false);
+      await apiPost("/api/matrimonial/me/submit");
+
+      setRegisterSuccess(true);
+      apiGet<BrowseResponse>("/api/matrimonial")
+        .then(res => setDbProfiles(res.profiles ?? []))
+        .catch(() => {});
+      apiGet<Eligibility>("/api/matrimonial/eligibility").then(setEligibility).catch(() => {});
+      setTimeout(() => {
+        setShowRegisterModal(false);
+        setRegisterSuccess(false);
+      }, 2200);
+    } catch (err) {
+      setSubmitError(errorMessage(err, "Could not submit your profile."));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <SidebarLayout title="Matrimonial Hub">
+      {loadError && (
+        <div className="mb-4 rounded-xl border px-4 py-3 text-sm"
+          style={{ background:"#FEE2E2", borderColor:"#FCA5A5", color:"#991B1B" }}>
+          {loadError}
+        </div>
+      )}
+
+      {blocked && (
+        <div className="mb-5 rounded-2xl border p-5"
+          style={{ background:"#FBF6EE", borderColor:"#DFC5A0" }}>
+          <h3 className="font-bold mb-1" style={{ fontFamily:"'Playfair Display', serif", color:"#6B4226" }}>
+            Complete your profile to browse the hub
+          </h3>
+          <p className="text-sm mb-3" style={{ color:"#6B4226" }}>
+            The Matrimonial Hub is reciprocal — members who are listed can see
+            each other. Add the missing details and your own listing goes to the
+            elders for review.
+          </p>
+          {eligibility && (
+            <ul className="text-sm list-disc list-inside mb-4" style={{ color:"#92400E" }}>
+              {eligibility.reasons.map(r => <li key={r}>{r}</li>)}
+              {eligibility.missing.map(m => <li key={m.key}>Add your {m.label.toLowerCase()}</li>)}
+            </ul>
+          )}
+          <button onClick={() => setShowRegisterModal(true)}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+            style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
+            List my profile
+          </button>
+        </div>
+      )}
+
       {/* Elder Mediated Banner */}
       <motion.div
         initial={{ opacity:0,y:-16 }} animate={{ opacity:1,y:0 }} transition={{ duration:0.5 }}
@@ -143,16 +213,18 @@ export default function MatrimonialPage() {
       {dbProfiles.length > 0 && (
         <div className="flex gap-3 mb-6">
           <div className="flex-1 rounded-xl p-3 text-center border" style={{ background:"white", borderColor:"#DFC5A0" }}>
-            <p className="text-xl font-bold" style={{ color:"#1B4332" }}>{dbProfiles.length}</p>
-            <p className="text-xs text-gray-400">New Registrations</p>
-          </div>
-          <div className="flex-1 rounded-xl p-3 text-center border" style={{ background:"white", borderColor:"#DFC5A0" }}>
-            <p className="text-xl font-bold" style={{ color:"#1B4332" }}>{MATRIMONIAL_CANDIDATES.length}</p>
-            <p className="text-xs text-gray-400">Verified Profiles</p>
-          </div>
-          <div className="flex-1 rounded-xl p-3 text-center border" style={{ background:"white", borderColor:"#DFC5A0" }}>
             <p className="text-xl font-bold" style={{ color:"#1B4332" }}>{allCandidates.length}</p>
-            <p className="text-xs text-gray-400">Total Listed</p>
+            <p className="text-xs text-gray-400">Profiles Listed</p>
+          </div>
+          <div className="flex-1 rounded-xl p-3 text-center border" style={{ background:"white", borderColor:"#DFC5A0" }}>
+            <p className="text-xl font-bold" style={{ color:"#1B4332" }}>
+              {allCandidates.filter(c => c.verified).length}
+            </p>
+            <p className="text-xs text-gray-400">Elder Verified</p>
+          </div>
+          <div className="flex-1 rounded-xl p-3 text-center border" style={{ background:"white", borderColor:"#DFC5A0" }}>
+            <p className="text-xl font-bold" style={{ color:"#1B4332" }}>{filtered.length}</p>
+            <p className="text-xs text-gray-400">Matching Filters</p>
           </div>
         </div>
       )}
@@ -277,79 +349,83 @@ export default function MatrimonialPage() {
                 <div className="text-center py-4">
                   <CheckCircle size={48} className="mx-auto mb-4" style={{ color:"#1B4332" }} />
                   <h3 className="text-xl font-bold mb-2" style={{ fontFamily:"'Playfair Display', serif" }}>Request Submitted!</h3>
-                  <p className="text-gray-500 text-sm">Your profile has been saved. The Elder committee will review and contact you within 3 working days.</p>
+                  <p className="text-gray-500 text-sm">Your profile is with the Elder committee for review. It appears in the hub once approved.</p>
                 </div>
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-bold" style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
-                      Register Matrimonial Profile
+                      List My Profile
                     </h3>
                     <button onClick={() => setShowRegisterModal(false)} className="p-1.5 rounded-full hover:bg-gray-100">
                       <X size={18} />
                     </button>
                   </div>
+                  <p className="text-sm text-gray-500 mb-5">
+                    Your name, age, gotra and native place come from your Samaj
+                    profile. Fill in the rest and an elder will review the listing.
+                  </p>
+
+                  {eligibility && !eligibility.eligible && (
+                    <div className="mb-5 rounded-xl border px-4 py-3 text-sm"
+                      style={{ background:"#FEF3C7", borderColor:"#FCD34D", color:"#92400E" }}>
+                      <p className="font-semibold mb-1">Before you can be listed:</p>
+                      <ul className="list-disc list-inside space-y-0.5">
+                        {eligibility.reasons.map(r => <li key={r}>{r}</li>)}
+                        {eligibility.missing.map(m => <li key={m.key}>Add your {m.label.toLowerCase()}</li>)}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Candidate Name *</label>
-                      <input value={regForm.name} onChange={e => setRegForm(p=>({...p,name:e.target.value}))}
-                        className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
-                        placeholder="Full name as per Samaj records" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Looking For</label>
-                        <select value={regForm.gender} onChange={e => setRegForm(p=>({...p,gender:e.target.value}))}
-                          className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}>
-                          <option>Bride</option>
-                          <option>Groom</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Age</label>
-                        <input type="number" value={regForm.age} onChange={e => setRegForm(p=>({...p,age:e.target.value}))}
-                          className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
-                          placeholder="e.g. 27" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Gotra</label>
-                        <select value={regForm.gotra} onChange={e => setRegForm(p=>({...p,gotra:e.target.value}))}
-                          className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}>
-                          {GOTRAS.map(g=><option key={g}>{g}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Phone *</label>
-                        <input type="tel" value={regForm.phone} onChange={e => setRegForm(p=>({...p,phone:e.target.value.replace(/\D/g,"")}))}
-                          maxLength={10}
-                          className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
-                          placeholder="9876543210" />
-                      </div>
-                    </div>
                     <div>
                       <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Education</label>
                       <input value={regForm.education} onChange={e => setRegForm(p=>({...p,education:e.target.value}))}
                         className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
                         placeholder="e.g. MBA Finance, IIM Ahmedabad" />
                     </div>
-                    <div>
-                      <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Company / Occupation</label>
-                      <input value={regForm.company} onChange={e => setRegForm(p=>({...p,company:e.target.value}))}
-                        className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
-                        placeholder="e.g. Goldman Sachs" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Company</label>
+                        <input value={regForm.company} onChange={e => setRegForm(p=>({...p,company:e.target.value}))}
+                          className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
+                          placeholder="e.g. Infosys" />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Designation</label>
+                        <input value={regForm.designation} onChange={e => setRegForm(p=>({...p,designation:e.target.value}))}
+                          className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
+                          placeholder="e.g. Senior Engineer" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Height (cm)</label>
+                        <input type="number" value={regForm.heightCm} onChange={e => setRegForm(p=>({...p,heightCm:e.target.value}))}
+                          className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
+                          placeholder="e.g. 168" />
+                      </div>
+                      <div>
+                        <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Family Type</label>
+                        <select value={regForm.familyType} onChange={e => setRegForm(p=>({...p,familyType:e.target.value}))}
+                          className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}>
+                          <option>Nuclear</option>
+                          <option>Joint</option>
+                        </select>
+                      </div>
                     </div>
                     <div>
-                      <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>Elder Reference (Required)</label>
-                      <input value={regForm.elderRef} onChange={e => setRegForm(p=>({...p,elderRef:e.target.value}))}
-                        className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none" style={{ borderColor:"#DFC5A0" }}
-                        placeholder="Name of vouching Elder / Samaj member" />
+                      <label className="text-sm font-semibold block mb-1.5" style={{ color:"#1B4332" }}>About</label>
+                      <textarea value={regForm.about} onChange={e => setRegForm(p=>({...p,about:e.target.value}))}
+                        rows={3}
+                        className="w-full border rounded-xl px-4 py-2.5 text-sm outline-none resize-none" style={{ borderColor:"#DFC5A0" }}
+                        placeholder="A few lines about yourself and what you are looking for" />
                     </div>
+                    {submitError && <p className="text-sm text-red-600">{submitError}</p>}
                     <p className="text-xs text-gray-400">Registration requires Elder committee approval. A nominal fee of ₹500 applies for listing.</p>
                     <button
                       onClick={handleRegisterSubmit}
-                      disabled={submitting || !regForm.name || !regForm.phone}
+                      disabled={submitting}
                       className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
                       style={{ background:"linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
                       {submitting

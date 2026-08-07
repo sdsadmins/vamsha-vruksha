@@ -4,15 +4,28 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, Edit2, MapPin, ChevronRight, Star, TreePine, Calendar, Briefcase, X, CheckCircle } from "lucide-react";
-import { getUser, saveUser } from "@/lib/auth";
+import { apiGet, apiPatch, errorMessage } from "@/lib/api";
+import { getUser, mergeUser } from "@/lib/auth";
 import SidebarLayout from "@/components/SidebarLayout";
 import { FAMILY_MEMBERS } from "@/lib/data";
 import { AVATAR_SVGS } from "@/lib/avatarSvgs";
 
+/** A member account, as GET /api/user/:id returns it. */
 interface DbMember {
-  _id: string; name: string; gender: string; dob?: string; dod?: string;
-  gotra: string; native: string; occupation: string; phone: string;
-  photoUrl: string; generation: number; branch: string; notes: string; parentId?: string;
+  id: string;
+  samajId: string;
+  userName: string;
+  name: string;
+  gender: string;
+  dob?: string;
+  gotra: string;
+  native: string;
+  occupation: string;
+  profileUrl: string;
+  bio: string;
+  verified: boolean;
+  isPurohit: boolean;
+  currentAddress?: { state?: string; city?: string; area?: string };
 }
 
 const LIFE_ARCHIVES: Record<string, string> = {
@@ -35,8 +48,6 @@ export default function ProfilePage() {
 
   // DB member state
   const [dbMember, setDbMember]       = useState<DbMember | null>(null);
-  const [dbParent, setDbParent]       = useState<DbMember | null>(null);
-  const [dbChildren, setDbChildren]   = useState<DbMember[]>([]);
   const [dbLoading, setDbLoading]     = useState(isMongoId(memberId));
 
   // Edit modal state (for static / current-user profile)
@@ -44,23 +55,15 @@ export default function ProfilePage() {
   const [editSaving, setEditSaving]   = useState(false);
   const [editDone, setEditDone]       = useState(false);
   const [editForm, setEditForm]       = useState({ name:"", gotra:"", native:"", occupation:"" });
+  const [editError, setEditError]     = useState("");
 
   useEffect(() => {
     if (!isMongoId(memberId)) return;
     setDbLoading(true);
-    Promise.all([
-      fetch(`/api/family/${memberId}`).then(r => r.ok ? r.json() : null),
-      fetch("/api/family").then(r => r.ok ? r.json() : []),
-    ]).then(([member, all]: [DbMember | null, DbMember[]]) => {
-      if (member) {
-        setDbMember(member);
-        if (member.parentId) {
-          setDbParent(all.find((m: DbMember) => m._id === member.parentId) ?? null);
-        }
-        setDbChildren(all.filter((m: DbMember) => m.parentId === memberId));
-      }
-      setDbLoading(false);
-    }).catch(() => setDbLoading(false));
+    apiGet<DbMember>(`/api/user/${memberId}`)
+      .then(setDbMember)
+      .catch(() => setDbMember(null))
+      .finally(() => setDbLoading(false));
   }, [memberId]);
 
   // Pre-fill edit form from current user in localStorage
@@ -70,29 +73,34 @@ export default function ProfilePage() {
       name: user?.name ?? "",
       gotra: user?.gotra ?? "",
       native: user?.native ?? "",
-      occupation: "",
+      occupation: user?.occupation ?? "",
     });
     setEditDone(false);
+    setEditError("");
     setShowEdit(true);
   };
 
   const handleEditSave = async () => {
     setEditSaving(true);
-    const user = getUser();
-    if (user) {
-      try {
-        await fetch("/api/auth/profile", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone: user.phone, gotra: editForm.gotra, native: editForm.native, occupation: editForm.occupation }),
-        });
-        // Update localStorage too
-        saveUser({ ...user, gotra: editForm.gotra, native: editForm.native });
-      } catch { /* ignore */ }
+    setEditError("");
+    const patch = {
+      name: editForm.name,
+      gotra: editForm.gotra,
+      native: editForm.native,
+      occupation: editForm.occupation,
+    };
+    try {
+      // The server identifies the account from the token, so this can only
+      // ever edit the signed-in member's own profile.
+      await apiPatch("/api/user/profile", patch);
+      mergeUser(patch);
+      setEditDone(true);
+      setTimeout(() => setShowEdit(false), 1400);
+    } catch (err) {
+      setEditError(errorMessage(err, "Could not save your profile."));
+    } finally {
+      setEditSaving(false);
     }
-    setEditSaving(false);
-    setEditDone(true);
-    setTimeout(() => setShowEdit(false), 1400);
   };
 
   // Static member fallback
@@ -110,7 +118,12 @@ export default function ProfilePage() {
 
   // ── DB Member Profile ──
   if (dbMember) {
-    const isLate = !!dbMember.dod;
+    // Accounts belong to living members; `In Memoriam` is a family-tree
+    // concept and does not apply here.
+    const place = dbMember.currentAddress?.city
+      || dbMember.currentAddress?.state
+      || (dbMember.native || "").split(",")[0]
+      || "—";
     return (
       <SidebarLayout title={dbMember.name}>
         <div className="grid lg:grid-cols-3 gap-6">
@@ -122,27 +135,31 @@ export default function ProfilePage() {
                 <div className="relative flex flex-col items-center text-center">
                   <div className="relative mb-3">
                     <div className="w-28 h-28 rounded-full overflow-hidden border-4 mx-auto"
-                      style={{ borderColor:"#C4823A", filter:isLate?"grayscale(30%)":"none" }}>
-                      {dbMember.photoUrl
-                        ? <img src={dbMember.photoUrl} alt={dbMember.name} className="w-full h-full object-cover" />
+                      style={{ borderColor:"#C4823A" }}>
+                      {dbMember.profileUrl
+                        ? <img src={dbMember.profileUrl} alt={dbMember.name} className="w-full h-full object-cover" />
                         : <div className="w-full h-full flex items-center justify-center text-5xl bg-green-900">{dbMember.gender==="F"?"👩":"👨"}</div>
                       }
                     </div>
-                    {!isLate && (
+                    {dbMember.verified && (
                       <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full border-2 flex items-center justify-center"
-                        style={{ background:"#D1FAE5", borderColor:"white" }}>
+                        style={{ background:"#D1FAE5", borderColor:"white" }}
+                        title="Verified by an elder">
                         <span className="text-xs" style={{ color:"#065F46" }}>✓</span>
                       </div>
                     )}
                   </div>
-                  {isLate && (
+                  {dbMember.isPurohit && (
                     <span className="text-xs px-2 py-0.5 rounded-full mb-2 font-medium"
-                      style={{ background:"rgba(156,163,175,0.2)", color:"#D1D5DB" }}>In Memoriam</span>
+                      style={{ background:"rgba(196,130,58,0.25)", color:"#F0DDBA" }}>Purohit</span>
                   )}
                   <h1 className="text-xl font-bold text-white" style={{ fontFamily:"'Playfair Display', serif" }}>
-                    {isLate ? "Late " : ""}{dbMember.name}
+                    {dbMember.name}
                   </h1>
-                  <p className="text-green-300 text-sm">{dbMember.branch} Branch · Gen {dbMember.generation}</p>
+                  <p className="text-green-300 text-sm">
+                    {dbMember.userName ? `@${dbMember.userName}` : place}
+                    {dbMember.samajId ? ` · ${dbMember.samajId}` : ""}
+                  </p>
                 </div>
               </div>
               <div className="p-5 -mt-6">
@@ -189,9 +206,9 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { icon:Calendar, label:"Date of Birth", val:dbMember.dob||"—" },
-                  { icon:Calendar, label:"Date of Death", val:dbMember.dod||"—" },
                   { icon:Briefcase,label:"Occupation",    val:dbMember.occupation||"—" },
-                  { icon:MapPin,   label:"Branch",        val:dbMember.branch },
+                  { icon:MapPin,   label:"Native",        val:dbMember.native||"—" },
+                  { icon:MapPin,   label:"Lives in",      val:place },
                 ].map(({icon:Icon,label,val}) => (
                   <div key={label} className="rounded-xl p-3" style={{ background:"#F7F0E8" }}>
                     <div className="flex items-center gap-1.5 mb-1">
@@ -204,65 +221,32 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Family Relations */}
-            {(dbParent || dbChildren.length > 0) && (
-              <div className="rounded-2xl border overflow-hidden" style={{ background:"white", borderColor:"#DFC5A0" }}>
-                <div className="flex items-center justify-between p-5 border-b" style={{ borderColor:"#F3F4F6" }}>
-                  <h2 className="font-bold text-lg flex items-center gap-2" style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
-                    <TreePine size={18} style={{ color:"#1B4332" }} /> Family Relations
-                  </h2>
-                  <Link href="/family-tree" className="text-xs font-semibold" style={{ color:"#1B4332" }}>View Full Tree →</Link>
-                </div>
-                <div className="divide-y" style={{ borderColor:"#F9F9F9" }}>
-                  {dbParent && (
-                    <Link href={`/profile/${dbParent._id}`}
-                      className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 flex items-center justify-center"
-                          style={{ borderColor:"#DFC5A0", background:"#F7F0E8" }}>
-                          {dbParent.photoUrl
-                            ? <img src={dbParent.photoUrl} alt={dbParent.name} className="w-full h-full object-cover" />
-                            : <span className="text-2xl">{dbParent.gender==="F"?"👩":"👨"}</span>}
-                        </div>
-                        <div>
-                          <p className="font-semibold">{dbParent.name}</p>
-                          <p className="text-xs text-gray-400">Parent · Gen {dbParent.generation}</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={16} className="text-gray-400" />
-                    </Link>
-                  )}
-                  {dbChildren.map(child => (
-                    <Link key={child._id} href={`/profile/${child._id}`}
-                      className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 flex items-center justify-center"
-                          style={{ borderColor:"#DFC5A0", background:"#F7F0E8" }}>
-                          {child.photoUrl
-                            ? <img src={child.photoUrl} alt={child.name} className="w-full h-full object-cover" />
-                            : <span className="text-2xl">{child.gender==="F"?"👩":"👨"}</span>}
-                        </div>
-                        <div>
-                          <p className="font-semibold">{child.name}</p>
-                          <p className="text-xs text-gray-400">Child · Gen {child.generation}</p>
-                        </div>
-                      </div>
-                      <ChevronRight size={16} className="text-gray-400" />
-                    </Link>
-                  ))}
+            {/* Family Relations — each member's tree is rendered from their own
+                perspective, so this links across rather than listing here. */}
+            <Link href="/family-tree"
+              className="flex items-center justify-between rounded-2xl border p-5 hover:bg-gray-50 transition-colors"
+              style={{ background:"white", borderColor:"#DFC5A0" }}>
+              <div className="flex items-center gap-3">
+                <TreePine size={18} style={{ color:"#1B4332" }} />
+                <div>
+                  <p className="font-bold" style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
+                    Family Relations
+                  </p>
+                  <p className="text-xs text-gray-400">See how you connect in the Vamsha Vruksha</p>
                 </div>
               </div>
-            )}
+              <ChevronRight size={16} className="text-gray-400" />
+            </Link>
 
             {/* Life Notes */}
-            {dbMember.notes && (
+            {dbMember.bio && (
               <div className="rounded-2xl border p-6" style={{ background:"white", borderColor:"#DFC5A0" }}>
                 <h2 className="font-bold text-lg mb-4 flex items-center gap-2" style={{ fontFamily:"'Playfair Display', serif", color:"#0D2B1E" }}>
                   <Star size={18} style={{ color:"#8B5E3C" }} fill="#8B5E3C" /> Life Archive
                 </h2>
                 <blockquote className="text-gray-600 italic leading-relaxed border-l-4 pl-4 text-base"
                   style={{ borderColor:"#8B5E3C", fontFamily:"'Playfair Display', serif" }}>
-                  &ldquo;{dbMember.notes}&rdquo;
+                  &ldquo;{dbMember.bio}&rdquo;
                 </blockquote>
               </div>
             )}
@@ -305,7 +289,7 @@ export default function ProfilePage() {
               <div className="relative flex flex-col items-center text-center">
                 <div className="relative mb-3">
                   <div className="w-28 h-28 rounded-full overflow-hidden border-4 mx-auto"
-                    style={{ borderColor:"#C4823A", filter:isLate?"grayscale(30%)":"none" }}>
+                    style={{ borderColor:"#C4823A" }}>
                     <img src={AVATAR_SVGS[memberId]??""} alt={staticMember.name} className="w-full h-full object-cover" />
                   </div>
                   {staticMember.status === "Active" && (

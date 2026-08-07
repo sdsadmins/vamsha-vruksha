@@ -5,12 +5,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Share2, Download, Heart, CheckCircle, Star, MapPin, Briefcase, Users, GraduationCap, Clock } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { MATRIMONIAL_CANDIDATES } from "@/lib/data";
-import { getUser } from "@/lib/auth";
+import { apiGet, apiPost, errorMessage } from "@/lib/api";
 
 interface DbProfile {
-  _id: string; name: string; gender: string; age?: number; gotra: string;
-  location: string; education: string; company: string; phone: string;
-  verified: boolean; photo: string; familyType: string; height: string; status: string;
+  id: string;
+  userId: string;
+  name: string;
+  gender: string;
+  age: number;
+  gotra: string;
+  location: string;
+  occupation: string;
+  education: string;
+  company: string;
+  designation: string;
+  verified: boolean;
+  photo: string;
+  familyType: string;
+  height: string;
+  about: string;
 }
 
 function isMongoId(s: string) { return /^[a-f0-9]{24}$/i.test(s); }
@@ -24,36 +37,38 @@ export default function CandidateDetailPage() {
   const [saving, setSaving]         = useState(false);
   const [dbProfile, setDbProfile]   = useState<DbProfile | null>(null);
   const [dbLoading, setDbLoading]   = useState(isMongoId(rawId));
+  const [proposeError, setProposeError] = useState("");
 
+  // One profile, from its own endpoint — the page used to pull every profile
+  // in the hub and find this one client-side.
   useEffect(() => {
     if (!isMongoId(rawId)) return;
-    fetch("/api/matrimonial")
-      .then(r => r.ok ? r.json() : [])
-      .then((all: DbProfile[]) => {
-        const found = all.find(p => p._id === rawId);
-        setDbProfile(found ?? null);
-        setDbLoading(false);
-      })
-      .catch(() => setDbLoading(false));
+    apiGet<DbProfile>(`/api/matrimonial/${rawId}`)
+      .then(setDbProfile)
+      .catch(() => setDbProfile(null))
+      .finally(() => setDbLoading(false));
   }, [rawId]);
 
+  /**
+   * Express interest — a connection request to the member behind the profile.
+   * The old page showed the "proposed" modal even when the request failed, so
+   * a member could believe they had reached out when nothing was sent.
+   */
   const handlePropose = async () => {
+    if (!dbProfile?.userId) {
+      setProposeError("This is a sample profile — there is no member to contact.");
+      return;
+    }
     setSaving(true);
-    const user = getUser();
+    setProposeError("");
     try {
-      await fetch("/api/interests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          candidateId: rawId,
-          candidateName: (dbProfile?.name ?? staticCandidate?.name) ?? "",
-          fromPhone: user?.phone ?? "",
-          fromName: user?.name ?? "Anonymous",
-        }),
-      });
-    } catch { /* ignore — still show modal */ }
-    setSaving(false);
-    setProposed(true);
+      await apiPost("/api/connections", { toUserId: dbProfile.userId });
+      setProposed(true);
+    } catch (err) {
+      setProposeError(errorMessage(err, "Could not send your interest."));
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (dbLoading) return (
@@ -118,6 +133,7 @@ export default function CandidateDetailPage() {
                     {saving ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending…</>
                       : proposed ? "✓ Interest Sent" : <><Heart size={16} /> Initiate Interest via Elder</>}
                   </button>
+                  {proposeError && <p className="text-xs text-red-600 mt-2">{proposeError}</p>}
                 </div>
               </div>
             </div>
