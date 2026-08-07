@@ -185,7 +185,17 @@ export default function VerificationsPage() {
         </div>
       )}
 
-      {/* Pending Claims heading */}
+      {/* Sample claims. The real queue is the section above, backed by
+          /api/admin/verifications. These rows are illustrative only — the
+          lineage-claim review they demonstrate has no backend yet, and their
+          buttons change nothing. Labelled so no elder mistakes them for work
+          waiting on them. */}
+      <div className="mb-4 rounded-xl border px-4 py-3 text-sm"
+        style={{ background: "#F3F4F6", borderColor: "#E5E7EB", color: "#4B5563" }}>
+        <strong>Sample data.</strong> Lineage-claim review is not built yet —
+        the rows below are a design preview and approving them does nothing.
+      </div>
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#0D2B1E" }}>
           Pending Claims ({VERIFICATION_REQUESTS.length})
