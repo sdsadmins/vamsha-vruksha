@@ -14,6 +14,14 @@ const USERNAME_RE = /^[a-z0-9._]{3,30}$/;
 
 type UsernameCheck = { userName: string; available: boolean; suggestions: string[] };
 type SendOtpResponse = { destination: string; resendAfterSeconds: number };
+
+/** GET /api/settings/signup — elders decide whether a new member proves their
+ *  email, their phone, or both. The form is built from this, not assumed. */
+type SignupPolicy = {
+  signupVerification: "email" | "phone" | "both";
+  requiresEmail: boolean;
+  requiresPhone: boolean;
+};
 type RegisterResponse = {
   success: true;
   user: VVUser;
@@ -43,16 +51,30 @@ export default function RegisterPage() {
   const [native, setNative]     = useState("");
   const [gender, setGender]     = useState<"M" | "F">("M");
   const [otp, setOtp]           = useState("");
+  const [email, setEmail]       = useState("");
+  const [emailOtp, setEmailOtp] = useState("");
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
   const [maskedTo, setMaskedTo] = useState("");
+  const [maskedEmail, setMaskedEmail] = useState("");
   const [resendIn, setResendIn] = useState(0);
+  // Until the policy loads we know neither which fields to show nor which
+  // codes to request, so the form waits rather than guessing.
+  const [policy, setPolicy] = useState<SignupPolicy | null>(null);
 
   // Username availability, checked as they type.
   const [checking, setChecking]       = useState(false);
   const [available, setAvailable]     = useState<boolean | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const touchedUserName = useRef(false);
+
+  useEffect(() => {
+    apiGet<SignupPolicy>("/api/settings/signup", { anonymous: true })
+      .then(setPolicy)
+      // Falling back to phone-only matches how the server behaved before the
+      // policy existed, and a wrong guess is caught by the server anyway.
+      .catch(() => setPolicy({ signupVerification: "phone", requiresEmail: false, requiresPhone: true }));
+  }, []);
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -103,16 +125,30 @@ export default function RegisterPage() {
   };
 
   const sendOtp = async () => {
+    if (!policy) return;
     setLoading(true);
     setError("");
     try {
-      const res = await apiPost<SendOtpResponse>(
-        "/api/otp/send",
-        { channel: "sms", destination: phone, purpose: "register" },
-        { anonymous: true },
-      );
-      setMaskedTo(res.destination);
-      setResendIn(res.resendAfterSeconds);
+      // Sent in sequence, not in parallel: if the email send fails there is no
+      // point spending an SMS, and the member sees one clear error.
+      if (policy.requiresEmail) {
+        const res = await apiPost<SendOtpResponse>(
+          "/api/otp/send",
+          { channel: "email", destination: email, purpose: "register" },
+          { anonymous: true },
+        );
+        setMaskedEmail(res.destination);
+        setResendIn(res.resendAfterSeconds);
+      }
+      if (policy.requiresPhone) {
+        const res = await apiPost<SendOtpResponse>(
+          "/api/otp/send",
+          { channel: "sms", destination: phone, purpose: "register" },
+          { anonymous: true },
+        );
+        setMaskedTo(res.destination);
+        setResendIn(res.resendAfterSeconds);
+      }
       setStep("otp");
     } catch (err) {
       setError(errorMessage(err, "Could not send the code. Please try again."));
@@ -129,12 +165,21 @@ export default function RegisterPage() {
     }
     if (available === false) { setError("That username is taken — pick another"); return; }
     if (phone.length !== 10) { setError("Please enter a valid 10-digit phone number"); return; }
+    if (policy?.requiresEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
     setError("");
     void sendOtp();
   };
 
+  /** Every code the policy asked for must be filled before we submit. */
+  const codesReady =
+    (!policy?.requiresPhone || otp.length >= 4) &&
+    (!policy?.requiresEmail || emailOtp.length >= 4);
+
   const handleVerify = async () => {
-    if (otp.length < 4) return;
+    if (!codesReady) return;
     setLoading(true);
     setError("");
     try {
@@ -144,10 +189,13 @@ export default function RegisterPage() {
           userName,
           name: name.trim(),
           phone,
-          otp,
           gotra,
           native: native.trim() || undefined,
           gender,
+          // Only what the policy asked for — sending a code the server did not
+          // request would just be noise it ignores.
+          ...(policy?.requiresPhone ? { otp } : {}),
+          ...(policy?.requiresEmail ? { email, emailOtp } : {}),
         },
         { anonymous: true },
       );
@@ -296,8 +344,27 @@ export default function RegisterPage() {
                       onFocus={e => e.target.style.borderColor = "#1B4332"}
                       onBlur={e => e.target.style.borderColor = "#DFC5A0"}
                     />
-                    <p className="text-xs text-gray-400 mt-1">We&apos;ll text a code to confirm it&apos;s yours.</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {policy?.requiresPhone
+                        ? "We'll text a code to confirm it's yours."
+                        : "Used to reach you and to link relatives' family trees."}
+                    </p>
                   </div>
+
+                  {/* Email — shown only when elders require email verification. */}
+                  {policy?.requiresEmail && (
+                    <div>
+                      <label className="block text-sm font-semibold mb-1.5" style={{ color: "#1B4332" }}>Email</label>
+                      <input type="email" inputMode="email" placeholder="you@example.com" value={email}
+                        onChange={e => { setEmail(e.target.value.trim()); setError(""); }}
+                        className="w-full px-4 py-3 text-sm border rounded-xl outline-none bg-white"
+                        style={{ borderColor: "#DFC5A0" }}
+                        onFocus={e => e.target.style.borderColor = "#1B4332"}
+                        onBlur={e => e.target.style.borderColor = "#DFC5A0"}
+                      />
+                      <p className="text-xs text-gray-400 mt-1">We&apos;ll email a code to confirm it&apos;s yours.</p>
+                    </div>
+                  )}
 
                   {/* Gender */}
                   <div>
@@ -344,7 +411,7 @@ export default function RegisterPage() {
 
                   {error && <p className="text-red-500 text-sm">{error}</p>}
 
-                  <button onClick={handleNext} disabled={loading}
+                  <button onClick={handleNext} disabled={loading || !policy}
                     className="w-full py-3.5 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 disabled:opacity-60"
                     style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)", boxShadow: "0 4px 16px rgba(27,67,50,0.3)" }}>
                     {loading
@@ -366,9 +433,32 @@ export default function RegisterPage() {
                   Verify your number
                 </h1>
                 <p className="text-gray-500 mb-6 text-sm">
-                  Code sent to <strong>{maskedTo || `+91 ${phone}`}</strong>
+                  {policy?.requiresEmail && policy?.requiresPhone
+                    ? "Enter both codes to finish."
+                    : `Code sent to ${policy?.requiresEmail ? (maskedEmail || email) : (maskedTo || `+91 ${phone}`)}`}
                 </p>
                 <div className="space-y-4 mt-4">
+                  {policy?.requiresEmail && (
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5 text-gray-500">
+                        Emailed to {maskedEmail || email}
+                      </label>
+                      <input type="text" inputMode="numeric" maxLength={6} placeholder="- - - - - -" value={emailOtp}
+                        onChange={e => { setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
+                        className="w-full px-6 py-4 text-center text-3xl font-bold border rounded-xl outline-none bg-white"
+                        style={{ borderColor: "#DFC5A0", color: "#1B4332", letterSpacing: "0.3em" }}
+                        onKeyDown={e => e.key === "Enter" && handleVerify()}
+                        autoFocus
+                      />
+                    </div>
+                  )}
+                  {policy?.requiresPhone && (
+                    <div>
+                      {policy?.requiresEmail && (
+                        <label className="block text-xs font-semibold mb-1.5 text-gray-500">
+                          Texted to {maskedTo || `+91 ${phone}`}
+                        </label>
+                      )}
                   <input type="text" inputMode="numeric" maxLength={6} placeholder="- - - - - -" value={otp}
                     onChange={e => { setOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
                     className="w-full px-6 py-4 text-center text-3xl font-bold border rounded-xl outline-none bg-white"
@@ -376,10 +466,12 @@ export default function RegisterPage() {
                     onFocus={e => e.target.style.borderColor = "#1B4332"}
                     onBlur={e => e.target.style.borderColor = "#DFC5A0"}
                     onKeyDown={e => e.key === "Enter" && handleVerify()}
-                    autoFocus
+                    autoFocus={!policy?.requiresEmail}
                   />
+                    </div>
+                  )}
                   {error && <p className="text-red-500 text-sm">{error}</p>}
-                  <button onClick={handleVerify} disabled={loading || otp.length < 4}
+                  <button onClick={handleVerify} disabled={loading || !codesReady}
                     className="w-full py-3.5 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60"
                     style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
                     {loading

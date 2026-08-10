@@ -2,11 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  TreePine, LayoutDashboard, Heart, Users, Shield,
-  LogOut, Bell, ChevronRight, Menu, User, Lock, Navigation, Map,
-  Archive, MessageSquare, Settings, HelpCircle
-} from "lucide-react";
+import { Archive, Bell, Calendar, ChevronRight, Heart, HelpCircle, LayoutDashboard, Lock, LogOut, Map, Menu, MessageSquare, Navigation, Settings, Shield, TreePine, User, Users } from "lucide-react";
 import { getUser, clearUser, type VVUser, avatarSrc } from "@/lib/auth";
 import { AVATAR_SVGS } from "@/lib/avatarSvgs";
 
@@ -25,7 +21,8 @@ const ELDER_NAV = [
   { icon: Archive,         label: "Archives",        href: "/elder/archive" },
   { icon: Users,           label: "Community",       href: "/elder/members" },
   { icon: MessageSquare,   label: "Moderation",      href: "/elder/conflict/ck-1" },
-  { icon: Settings,        label: "Settings",        href: "/elder/events" },
+  { icon: Calendar,        label: "Events",          href: "/elder/events" },
+  { icon: Settings,        label: "Settings",        href: "/elder/settings" },
 ];
 
 interface Props {
