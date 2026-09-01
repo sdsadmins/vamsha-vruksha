@@ -129,29 +129,12 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     try {
-      // Sent in sequence, not in parallel: if the email send fails there is no
-      // point spending an SMS, and the member sees one clear error.
-      if (policy.requiresEmail) {
-        const res = await apiPost<SendOtpResponse>(
-          "/api/otp/send",
-          { channel: "email", destination: email, purpose: "register" },
-          { anonymous: true },
-        );
-        setMaskedEmail(res.destination);
-        setResendIn(res.resendAfterSeconds);
-      }
-      if (policy.requiresPhone) {
-        const res = await apiPost<SendOtpResponse>(
-          "/api/otp/send",
-          { channel: "sms", destination: phone, purpose: "register" },
-          { anonymous: true },
-        );
-        setMaskedTo(res.destination);
-        setResendIn(res.resendAfterSeconds);
-      }
+      // This backend creates the account without an OTP step (no /api/otp/send),
+      // so advance straight to the confirmation screen.
+      if (policy.requiresEmail) setMaskedEmail(email);
+      if (policy.requiresPhone) setMaskedTo(phone);
+      setResendIn(0);
       setStep("otp");
-    } catch (err) {
-      setError(errorMessage(err, "Could not send the code. Please try again."));
     } finally {
       setLoading(false);
     }

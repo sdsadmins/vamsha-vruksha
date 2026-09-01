@@ -46,16 +46,11 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await apiPost<SendOtpResponse>(
-        "/api/otp/send",
-        { channel: "sms", destination: phone, purpose: "login" },
-        { anonymous: true },
-      );
-      setMaskedTo(res.destination);
-      setResendIn(res.resendAfterSeconds);
+      // This backend has no /api/otp/send step — login is a single call that
+      // accepts the fixed code. Advance to the code screen without sending.
+      setMaskedTo(phone);
+      setResendIn(0);
       setStep("otp");
-    } catch (err) {
-      setError(errorMessage(err, "Could not send the code. Please try again."));
     } finally {
       setLoading(false);
     }

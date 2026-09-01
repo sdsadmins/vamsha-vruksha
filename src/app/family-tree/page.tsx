@@ -37,6 +37,7 @@ interface TreeNode {
   relationToRoot: string;
   isSelf: boolean;
   dob: string | null;
+  relationshipId: string | null;
 }
 
 interface TreeEdge { from: string; to: string; relation: Relation }
@@ -198,8 +199,30 @@ export default function FamilyTreePage() {
 
   const loadTree = useCallback(async () => {
     try {
-      const data = await apiGet<TreeResponse>("/api/family-tree");
-      setTree(data);
+      // main serves the tree at /api/family/tree with a per-node `relation`,
+      // `profileUrl` and `relationshipId`; map them to the shape this page renders.
+      const raw = await apiGet<{
+        rootId: string;
+        nodes: Array<Record<string, unknown>>;
+        edges: TreeEdge[];
+        truncated: boolean;
+      }>("/api/family/tree");
+      const nodes: TreeNode[] = raw.nodes.map((n) => ({
+        id: String(n.id ?? ""),
+        name: String(n.name ?? ""),
+        gender: (n.gender as string | null) ?? null,
+        status: String(n.status ?? ""),
+        photoUrl: String(n.profileUrl ?? n.photoUrl ?? ""),
+        isPlaceholder: Boolean(n.isPlaceholder),
+        deceased: Boolean(n.deceased),
+        linkedUserId: (n.linkedUserId as string | null) ?? null,
+        generation: Number(n.generation ?? 0),
+        relationToRoot: String(n.relation ?? n.relationToRoot ?? ""),
+        isSelf: Boolean(n.isSelf),
+        dob: (n.dob as string | null) ?? null,
+        relationshipId: (n.relationshipId as string | null) ?? null,
+      }));
+      setTree({ rootId: raw.rootId, nodes, edges: raw.edges, truncated: raw.truncated });
       setLoadError("");
     } catch (err) {
       setLoadError(errorMessage(err, "Could not load your family tree."));
@@ -210,9 +233,9 @@ export default function FamilyTreePage() {
 
   const loadInbox = useCallback(async () => {
     const [reqs, invs, notes] = await Promise.all([
-      apiGet<PendingRequest[]>("/api/family-tree/requests").catch(() => []),
-      apiGet<Invite[]>("/api/family-tree/invites").catch(() => []),
-      apiGet<FamilyNotification[]>("/api/family-tree/notifications").catch(() => []),
+      apiGet<PendingRequest[]>("/api/family/requests").catch(() => []),
+      apiGet<Invite[]>("/api/family/invites").catch(() => []),
+      apiGet<FamilyNotification[]>("/api/family/notifications").catch(() => []),
     ]);
     setRequests(reqs);
     setInvites(invs);
@@ -236,7 +259,7 @@ export default function FamilyTreePage() {
 
   const respondToRequest = async (id: string, action: "accept" | "decline") => {
     try {
-      await apiPost(`/api/family-tree/requests/${id}/${action}`);
+      await apiPost(`/api/family/requests/${id}/${action}`);
       setRequests(r => r.filter(x => x._id !== id));
       if (action === "accept") await loadTree();
     } catch (err) {
@@ -246,7 +269,7 @@ export default function FamilyTreePage() {
 
   const respondToInvites = async (action: "accept" | "decline") => {
     try {
-      await apiPost(`/api/family-tree/invites/${action}`);
+      await apiPost(`/api/family/invites/${action}`);
       setInvites([]);
       if (action === "accept") await loadTree();
     } catch (err) {
@@ -254,9 +277,13 @@ export default function FamilyTreePage() {
     }
   };
 
-  const removeMember = async (id: string) => {
+  const removeMember = async (relationshipId: string | null) => {
+    if (!relationshipId) {
+      setLoadError("This relative can't be removed from here.");
+      return;
+    }
     try {
-      await apiDelete(`/api/family-tree/members/${id}`);
+      await apiDelete(`/api/family/relationships/${relationshipId}`);
       setSelectedId(null);
       await loadTree();
     } catch (err) {
@@ -437,7 +464,7 @@ export default function FamilyTreePage() {
               )}
 
               {!selected.isSelf && !selected.linkedUserId && (
-                <button onClick={() => removeMember(selected.id)}
+                <button onClick={() => removeMember(selected.relationshipId)}
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border"
                   style={{ borderColor:"#FCA5A5", color:"#DC2626" }}>
                   <Trash2 size={14} /> Remove from tree
@@ -514,7 +541,7 @@ function AddMemberModal({ onClose, onAdded }: {
     try {
       // Digits are a phone number, everything else is treated as a name.
       const isPhone = /^\d{10}$/.test(q);
-      const found = await apiGet<UserPreview[]>("/api/family-tree/search", {
+      const found = await apiGet<UserPreview[]>("/api/family/search", {
         query: isPhone ? { phone: q, limit: 10 } : { name: q, limit: 10 },
       });
       setResults(found);
@@ -547,7 +574,7 @@ function AddMemberModal({ onClose, onAdded }: {
               } : {}),
             };
 
-      const res = await apiPost<{ mode: string }>("/api/family-tree/members", body);
+      const res = await apiPost<{ mode: string }>("/api/family/members", body);
       await onAdded();
 
       // What happened next differs by mode, and saying so matters: a pending
