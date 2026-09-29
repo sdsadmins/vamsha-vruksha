@@ -4,19 +4,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { TreePine, Shield, ArrowRight, CheckCircle, Users, Heart, Phone } from "lucide-react";
-import { apiPost, errorMessage } from "@/lib/api";
+import { ApiError, apiPost, errorMessage } from "@/lib/api";
 import { saveSession } from "@/lib/auth";
 import type { VVUser } from "@/lib/auth";
 
-type SendOtpResponse = {
-  success: true;
-  channel: "sms" | "email";
-  destination: string;
-  expiresInSeconds: number;
-  resendAfterSeconds: number;
-};
+// Same login flow as the Flutter app (human-link/lib/screens/login_screen.dart):
+//
+//   1. POST /api/user/login/send-otp { phone }  → 2Factor { Status, Details }
+//      `Details` is the OTP session id; the SMS goes out from the server.
+//   2. POST /api/user/login { phone, otp, sessionId }  → { user, token }
+//
+// Without the session id from step 1 the server rejects step 2 ("sessionId
+// must be a string"), so the OTP screen only ever shows after send-otp worked.
+type SendOtpResponse = { Status: string; Details?: string };
 
 type LoginResponse = { success: true; user: VVUser; token: string };
+
+const RESEND_COOLDOWN_SECONDS = 30;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +28,9 @@ export default function LoginPage() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [maskedTo, setMaskedTo] = useState("");
+  // Set from send-otp's response; sent back on verify so the server knows
+  // which 2Factor session the entered code belongs to.
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(0);
@@ -46,31 +52,61 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      // This backend has no /api/otp/send step — login is a single call that
-      // accepts the fixed code. Advance to the code screen without sending.
-      setMaskedTo(phone);
-      setResendIn(0);
+      const data = await apiPost<SendOtpResponse>(
+        "/api/user/login/send-otp",
+        { phone },
+        { anonymous: true },
+      );
+      if (data?.Status !== "Success" || !data.Details) {
+        throw new Error("Could not send OTP. Please try again.");
+      }
+      setSessionId(data.Details);
+      setOtp("");
+      setResendIn(RESEND_COOLDOWN_SECONDS);
       setStep("otp");
+    } catch (err) {
+      setError(errorMessage(err, "Could not send OTP. Please try again."));
     } finally {
       setLoading(false);
     }
   };
 
   const verifyOtp = async () => {
-    if (otp.length < 4) return;
+    if (otp.length !== 6) {
+      setError("Enter the 6-digit OTP");
+      return;
+    }
+    if (!sessionId) {
+      // The OTP step only shows after send-otp succeeded, so this is a stale
+      // screen (e.g. restored tab). Send them back to request a fresh code.
+      setError("Session expired — please request the OTP again.");
+      setStep("phone");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
       const data = await apiPost<LoginResponse>(
         "/api/user/login",
-        { phone, otp },
+        { phone, otp, sessionId },
         { anonymous: true },
       );
       saveSession(data.user, data.token);
-      router.push(data.user.role === "elder" ? "/elder" : "/dashboard");
+      // One login for every role: admins land on the admin panel, elders on
+      // the elder portal, everyone else on the member dashboard.
+      router.push(
+        data.user.role === "admin"
+          ? "/admin"
+          : data.user.role === "elder"
+            ? "/elder"
+            : "/dashboard",
+      );
     } catch (err) {
+      const notRegistered =
+        (err instanceof ApiError && err.status === 404) ||
+        errorMessage(err).includes("not registered");
       setError(
-        errorMessage(err).includes("not registered")
+        notRegistered
           ? "This number isn't registered. Please create an account first."
           : errorMessage(err, "Login failed."),
       );
@@ -196,7 +232,7 @@ export default function LoginPage() {
                   <div className="rounded-2xl border p-6"
                     style={{ background: "white", borderColor: "#DFC5A0" }}>
                     <p className="text-sm text-gray-600 mb-4">
-                      Code sent to <strong>{maskedTo || `+91 ${phone}`}</strong>
+                      Enter the 6-digit OTP sent to <strong>+91 {phone}</strong>
                     </p>
                     <input type="text" inputMode="numeric" maxLength={6} placeholder="- - - - - -" value={otp}
                       onChange={e => { setOtp(e.target.value.replace(/\D/g,"").slice(0,6)); setError(""); }}
@@ -209,7 +245,7 @@ export default function LoginPage() {
                     />
                     {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
                     <button onClick={verifyOtp}
-                      disabled={loading || otp.length < 4}
+                      disabled={loading || otp.length !== 6}
                       className="w-full py-3.5 rounded-xl font-bold text-white flex items-center justify-center gap-2 disabled:opacity-60"
                       style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
                       {loading
@@ -217,7 +253,7 @@ export default function LoginPage() {
                         : <><CheckCircle size={16} /> Login</>}
                     </button>
                     <div className="flex items-center justify-between mt-3 text-sm">
-                      <button onClick={() => { setStep("phone"); setError(""); setOtp(""); }}
+                      <button onClick={() => { setStep("phone"); setError(""); setOtp(""); setSessionId(null); }}
                         className="text-gray-500 hover:text-gray-700">
                         ← Change number
                       </button>

@@ -14,7 +14,7 @@ export type VVUser = {
   userName: string;
   name: string;
   phone: string;
-  role: "member" | "elder";
+  role: "member" | "elder" | "admin";
   gotra: string;
   native: string;
   gender: string;

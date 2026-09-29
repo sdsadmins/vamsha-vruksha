@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { PlusCircle, TrendingUp, BarChart2 } from "lucide-react";
+import { TrendingUp, BarChart2 } from "lucide-react";
 import SidebarLayout from "@/components/SidebarLayout";
 import { apiGet, apiPost, errorMessage } from "@/lib/api";
 import { getUser, type VVUser } from "@/lib/auth";
@@ -123,15 +123,6 @@ export default function WelfarePage() {
               </div>
             ))}
           </div>
-          {user?.role === "elder" && (
-            <Link
-              href="/welfare/campaign/new"
-              className="shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm"
-              style={{ background: "linear-gradient(135deg, #8B5E3C, #C4823A)", color: "white" }}
-            >
-              <PlusCircle size={16} /> Start Campaign
-            </Link>
-          )}
         </div>
       </motion.div>
 
