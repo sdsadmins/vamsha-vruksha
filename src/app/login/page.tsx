@@ -65,7 +65,16 @@ export default function LoginPage() {
       setResendIn(RESEND_COOLDOWN_SECONDS);
       setStep("otp");
     } catch (err) {
-      setError(errorMessage(err, "Could not send OTP. Please try again."));
+      // The server checks the account before sending the OTP, so an unknown
+      // number is reported here, before any SMS goes out.
+      const notRegistered =
+        (err instanceof ApiError && err.status === 404) ||
+        errorMessage(err).includes("not registered");
+      setError(
+        notRegistered
+          ? "This number isn't registered. Please create an account first."
+          : errorMessage(err, "Could not send OTP. Please try again."),
+      );
     } finally {
       setLoading(false);
     }

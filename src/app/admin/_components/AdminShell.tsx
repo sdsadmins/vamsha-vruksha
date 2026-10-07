@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   ListChecks,
   LogOut,
+  Megaphone,
   Menu,
   Settings,
   Shield,
@@ -19,6 +20,7 @@ export const ADMIN_NAV = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
   { icon: Users, label: "Members", href: "/admin/members" },
   { icon: HeartHandshake, label: "Community Campaigns", href: "/admin/community_campaign" },
+  { icon: Megaphone, label: "Post Campaigns", href: "/admin/post_campaigns" },
   { icon: ListChecks, label: "Dropdown Options", href: "/admin/dropdowns" },
   { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
