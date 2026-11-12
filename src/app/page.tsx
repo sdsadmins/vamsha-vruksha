@@ -653,7 +653,7 @@ export default function LandingPage() {
                 <p className="text-green-400 text-xs">Daivajna Samaja Community Portal</p>
               </div>
             </Link>
-            <div className="flex gap-6 flex-wrap justify-center">
+            {/* <div className="flex gap-6 flex-wrap justify-center">
               {[
                 "Privacy Policy",
                 "Terms of Service",
@@ -665,11 +665,54 @@ export default function LandingPage() {
                   {l}
                 </Link>
               ))}
-            </div>
+            </div> */}
+
+            <div className="flex gap-6 flex-wrap justify-center">
+  {[
+    // { label: "About Us", href: "/about-us" },
+    // { label: "Contact Us", href: "/contact-us" },
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Terms of Service", href: "/terms" },
+    // { label: "Heritage Guidelines", href: "/heritage-guidelines" },
+    // { label: "Community Governance", href: "/governance" },
+  ].map((item) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      className="text-green-400 text-sm hover:text-white transition-colors"
+    >
+      {item.label}
+    </Link>
+  ))}
+</div>
           </div>
-          <p className="text-center text-green-600 text-xs">
-            © 2024 Daivajna Samaja — Daivajna Samaja Community Portal. Preserving Legacies for Generations.
-          </p>
+         <div className="text-center mt-8 space-y-3">
+  <p className="text-green-400 text-sm">
+    Daivajna Samaj is a digital community and matrimony platform
+    owned and operated by Credora Technologies (OPC) Private Limited.
+  </p>
+
+  <p className="text-green-500 text-xs">
+    CIN: U62011KA2025OPC207972
+  </p>
+
+  <div className="flex flex-wrap justify-center gap-4 text-xs text-green-400">
+    <a href="mailto:support@daivajnasamaj.in">
+      support@daivajnasamaj.in
+    </a>
+    <a href="mailto:support@credora.info">
+      support@credora.info
+    </a>
+    <a href="tel:+919880643606">
+      +91 9880643606
+    </a>
+  </div>
+
+  <p className="text-green-600 text-xs">
+    © 2026 Credora Technologies (OPC) Private Limited.
+    All rights reserved.
+  </p>
+</div>
         </div>
       </footer>
     </div>
