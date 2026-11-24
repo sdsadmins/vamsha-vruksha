@@ -11,6 +11,7 @@ import {
   Menu,
   Settings,
   Shield,
+  ShieldAlert,
   Users,
   X,
 } from "lucide-react";
@@ -22,6 +23,7 @@ export const ADMIN_NAV = [
   { icon: HeartHandshake, label: "Community Campaigns", href: "/admin/community_campaign" },
   { icon: Megaphone, label: "Post Campaigns", href: "/admin/post_campaigns" },
   { icon: ListChecks, label: "Dropdown Options", href: "/admin/dropdowns" },
+  { icon: ShieldAlert, label: "Reports & Moderation", href: "/admin/reports" },
   { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
 
