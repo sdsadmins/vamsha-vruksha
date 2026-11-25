@@ -82,10 +82,19 @@ const P = "/api/admin/panel";
 export const adminApi = {
   stats: () => apiGet<CommunityStats>(`${P}/stats`),
 
+  /**
+   * `gotra` and `city` narrow the list the same way `role`/`verified` do. The
+   * server is the only place the filtering can correctly happen — the list is
+   * paginated, so narrowing a fetched page would only ever filter the twenty
+   * rows in hand. Until the endpoint reads them the page falls back to
+   * narrowing what it has; see the note in members/page.tsx.
+   */
   members: (query: {
     q?: string;
     role?: AdminRole | "";
     verified?: "true" | "false" | "";
+    gotra?: string;
+    city?: string;
     page?: number;
     limit?: number;
   }) => apiGet<AdminMemberPage>(`${P}/members`, { query }),

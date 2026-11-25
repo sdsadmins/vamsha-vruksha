@@ -12,6 +12,12 @@ export default function AdminMembersPage() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<AdminRole | "">("");
   const [verified, setVerified] = useState<"true" | "false" | "">("");
+  // Typed into the form, then committed on submit like `q` — a request per
+  // keystroke across a members table is not worth the freshness.
+  const [gotraInput, setGotraInput] = useState("");
+  const [cityInput, setCityInput] = useState("");
+  const [gotra, setGotra] = useState("");
+  const [city, setCity] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState<AdminMemberPage | null>(null);
   const [error, setError] = useState("");
@@ -21,24 +27,52 @@ export default function AdminMembersPage() {
     setLoading(true);
     setError("");
     try {
-      setData(await adminApi.members({ q: search, role, verified, page, limit: LIMIT }));
+      setData(
+        await adminApi.members({ q: search, role, verified, gotra, city, page, limit: LIMIT }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
       setLoading(false);
     }
-  }, [search, role, verified, page]);
+  }, [search, role, verified, gotra, city, page]);
 
   useEffect(() => { void load(); }, [load]);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.count / data.limit)) : 1;
 
+  // Server-side is where this filtering belongs, and the params above ask for
+  // it. This repeats the test on the rows that came back so the controls do
+  // something the moment they are used, whether or not the endpoint reads
+  // them yet. When the server does filter, every row already matches and this
+  // is a no-op; when it doesn't, the page narrows but the count and page
+  // numbers below still describe the unfiltered result — which is exactly why
+  // the server has to own it in the end.
+  const matches = (value: string, term: string) =>
+    !term || value.toLowerCase().includes(term.toLowerCase());
+  const rows = (data?.users ?? []).filter(
+    (m) =>
+      matches(m.gotra ?? "", gotra) &&
+      matches(
+        [m.native, m.currentAddress?.city, m.currentAddress?.district, m.currentAddress?.state]
+          .filter(Boolean)
+          .join(" "),
+        city,
+      ),
+  );
+
   return (
     <AdminShell title="Members" subtitle={data ? `${data.count} accounts` : undefined}>
       <Card className="p-4 mb-4">
         <form
-          onSubmit={(e) => { e.preventDefault(); setPage(1); setSearch(q.trim()); }}
-          className="flex flex-col md:flex-row gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setPage(1);
+            setSearch(q.trim());
+            setGotra(gotraInput.trim());
+            setCity(cityInput.trim());
+          }}
+          className="flex flex-col md:flex-row md:flex-wrap gap-3"
         >
           <div className="relative flex-1">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -61,6 +95,25 @@ export default function AdminMembersPage() {
             <option value="true">Verified</option>
             <option value="false">Unverified</option>
           </select>
+          {/* Free text rather than selects: gotra spellings vary (Kousika /
+              Kaushika) and a location can be a city, a taluk or a state, so a
+              contains-match covers more than a fixed list would. */}
+          <input
+            value={gotraInput}
+            onChange={(e) => setGotraInput(e.target.value)}
+            placeholder="Gotra"
+            aria-label="Filter by gotra"
+            className={`${inputClass} md:w-40`}
+            style={inputStyle}
+          />
+          <input
+            value={cityInput}
+            onChange={(e) => setCityInput(e.target.value)}
+            placeholder="Location"
+            aria-label="Filter by location"
+            className={`${inputClass} md:w-40`}
+            style={inputStyle}
+          />
           <button type="submit" className="px-5 py-2.5 rounded-xl font-semibold text-white text-sm" style={{ background: "linear-gradient(135deg, #1B4332, #2D6A4F)" }}>
             Search
           </button>
@@ -72,7 +125,7 @@ export default function AdminMembersPage() {
       <Card>
         {loading ? (
           <Spinner />
-        ) : !data || data.users.length === 0 ? (
+        ) : !data || rows.length === 0 ? (
           <p className="px-5 py-12 text-sm text-gray-500 text-center">No members match.</p>
         ) : (
           <div className="overflow-x-auto">
@@ -89,7 +142,7 @@ export default function AdminMembersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y" style={{ borderColor: "#E8D5BC" }}>
-                {data.users.map((m) => (
+                {rows.map((m) => (
                   <tr key={m.id} className="hover:bg-[#FAF7F2]">
                     <td className="px-5 py-3">
                       <Link href={`/admin/members/${m.id}`} className="flex items-center gap-3">
